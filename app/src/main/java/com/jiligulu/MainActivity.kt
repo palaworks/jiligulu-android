@@ -11,33 +11,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.jiligulu.ui.theme.JiliguluTheme
+import java.util.*
+import unilang.alias.*
+import component.ui.*
+import component.data.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            JiliguluTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
-                }
-            }
+            val data = listOf(
+                PostData(
+                    12384, "Hola", "Just hello world!", Date(), Date()
+                ),
+                PostData(
+                    12384, "Hola", "Just hello world!", Date(), Date()
+                ),
+                PostData(
+                    12384, "Hola", "Just hello world!", Date(), Date()
+                )
+            )
+            ListContent(data)
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    JiliguluTheme {
-        Greeting("Android")
     }
 }
