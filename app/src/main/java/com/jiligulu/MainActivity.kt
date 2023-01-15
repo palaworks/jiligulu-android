@@ -3,6 +3,7 @@ package com.jiligulu
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -20,18 +21,26 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val data = listOf(
+            val postDataList = List(8) {
                 PostData(
-                    12384, "Hola", "Just hello world!", Date(), Date()
-                ),
-                PostData(
-                    12384, "Hola", "Just hello world!", Date(), Date()
-                ),
-                PostData(
-                    12384, "Hola", "Just hello world!", Date(), Date()
+                    12384,
+                    "Hello world!",
+                    "The quick brown fox jumps over the lazy dog",
+                    Date(),
+                    Date()
                 )
+            }
+            val commentDataList = List(8) {
+                CommentData(
+                    12384,
+                    "The quick brown fox jumps over the lazy dog",
+                    Date()
+                )
+            }
+            App(
+                postDataList = postDataList,
+                commentDataList = commentDataList
             )
-            ListContent(data)
         }
     }
 }

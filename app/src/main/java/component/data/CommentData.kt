@@ -3,10 +3,8 @@ package component.data
 import java.util.*
 import unilang.alias.*
 
-data class PostData(
+data class CommentData(
     val id: i64,
-    val title: String,
     val body: String,
-    val createTime: Date,
-    val modifyTime: Date
+    val createTime: Date
 )
