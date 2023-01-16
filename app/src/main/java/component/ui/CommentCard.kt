@@ -4,9 +4,7 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -52,8 +50,8 @@ fun CommentCard(data: CommentData, fullBody: Boolean = false) {
             ) {
                 Row {
                     Icon(
-                        imageVector = Icons.Default.Build,
-                        contentDescription = "Create Time",
+                        imageVector = Icons.Default.Numbers,
+                        contentDescription = "Post id",
                         tint = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.size(16.dp)
                     )
@@ -65,7 +63,7 @@ fun CommentCard(data: CommentData, fullBody: Boolean = false) {
                 }
                 Row {
                     Icon(
-                        imageVector = Icons.Default.Add,
+                        imageVector = Icons.Default.AddBox,
                         contentDescription = "Create Time",
                         tint = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.size(16.dp)

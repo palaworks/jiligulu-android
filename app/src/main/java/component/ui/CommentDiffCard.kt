@@ -5,9 +5,12 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.node.modifierElementOf
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,6 +48,19 @@ fun CommentDiffCard(
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = "Local data"
+                )
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = "Remote data"
+                )
+            }
             Spacer(modifier = Modifier.height(10.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
@@ -151,24 +167,44 @@ fun CommentDiffCard(
                 Button(
                     onClick = { /*TODO*/ }
                 ) {
-                    Text(
-                        text =
+                    val (text, icon) =
                         if (localComment.isEmpty)
-                            "Delete Remote"
+                            Pair(
+                                "Delete Remote",
+                                Icons.Default.Delete
+                            )
                         else
-                            "Push Local"
+                            Pair(
+                                "Push Local",
+                                Icons.Default.ArrowUpward
+                            )
+                    Icon(
+                        modifier = Modifier.size(20.dp),
+                        imageVector = icon,
+                        contentDescription = text
                     )
+                    Text(text = text)
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 Button(
                     onClick = { /*TODO*/ }
                 ) {
-                    Text(
-                        text =
+                    val (text, icon) =
                         if (remoteComment.isEmpty)
-                            "Delete Local"
+                            Pair(
+                                "Delete Local",
+                                Icons.Default.Delete
+                            )
                         else
-                            "Fetch Remote"
+                            Pair(
+                                "Fetch Remote",
+                                Icons.Default.ArrowDownward
+                            )
+                    Text(text = text)
+                    Icon(
+                        modifier = Modifier.size(20.dp),
+                        imageVector = icon,
+                        contentDescription = text
                     )
                 }
             }
