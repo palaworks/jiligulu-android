@@ -46,10 +46,10 @@ fun PostCard(data: PostData, fullBody: Boolean = false) {
                 Text(
                     text = data.body,
                     style = MaterialTheme.typography.bodyLarge,
-                    maxLines = 2,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(bottom = 8.dp),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
 
