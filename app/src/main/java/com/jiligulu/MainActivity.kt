@@ -39,7 +39,7 @@ class MainActivity : ComponentActivity() {
             }
 
             AppTheme {
-                App(
+                AppScreen(
                     postDataList = postDataList,
                     commentDataList = commentDataList
                 )

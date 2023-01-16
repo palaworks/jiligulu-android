@@ -10,7 +10,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import component.data.BottomNavBarItemData
 
 @Composable
-fun BottomNavBar(dataList: List<BottomNavBarItemData>) {
+fun BottomNavBar(
+    dataList: List<BottomNavBarItemData>,
+    navTo: (String) -> Unit
+) {
     NavigationBar(
         modifier = Modifier
             .fillMaxWidth()
@@ -18,7 +21,7 @@ fun BottomNavBar(dataList: List<BottomNavBarItemData>) {
         dataList.forEach {
             NavigationBarItem(
                 selected = false,
-                onClick = { },
+                onClick = { navTo(it.route) },
                 icon = {
                     Icon(
                         imageVector = it.icon,
@@ -47,5 +50,5 @@ fun BottomNavBarPreview() {
             Icons.Default.Settings
         )
     )
-    BottomNavBar(dataList)
+    BottomNavBar(dataList) {}
 }
