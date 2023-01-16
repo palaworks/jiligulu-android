@@ -4,10 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -16,6 +15,7 @@ import java.util.*
 import unilang.alias.*
 import component.ui.*
 import component.data.*
+import kotlin.text.Typography
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,10 +37,13 @@ class MainActivity : ComponentActivity() {
                     Date()
                 )
             }
-            App(
-                postDataList = postDataList,
-                commentDataList = commentDataList
-            )
+
+            AppTheme {
+                App(
+                    postDataList = postDataList,
+                    commentDataList = commentDataList
+                )
+            }
         }
     }
 }
