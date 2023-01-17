@@ -10,6 +10,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import component.data.BottomNavBarItemData
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomNavBar(
     dataList: List<BottomNavBarItemData>,
@@ -25,10 +26,14 @@ fun BottomNavBar(
                 selected = false,
                 onClick = { navTo(it.route) },
                 icon = {
-                    Icon(
-                        imageVector = it.icon,
-                        contentDescription = it.route
-                    )
+                    BadgedBox(
+                        badge = { Badge { Text("2") } }
+                    ) {
+                        Icon(
+                            imageVector = it.icon,
+                            contentDescription = it.route
+                        )
+                    }
                 }
             )
         }
