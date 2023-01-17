@@ -23,7 +23,11 @@ import component.data.*
 
 @SuppressLint("SimpleDateFormat")
 @Composable
-fun CommentCard(data: CommentData, fullBody: Boolean = false) {
+fun CommentCard(
+    navToDiff: (Long) -> Unit,
+    data: CommentData,
+    fullBody: Boolean = false
+) {
     val fmt = SimpleDateFormat("yy-M-d h:mm")
     Card(
         modifier = Modifier
@@ -42,7 +46,7 @@ fun CommentCard(data: CommentData, fullBody: Boolean = false) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 IconButton(
-                    onClick = { /*TODO*/ },
+                    onClick = { navToDiff(data.id) },
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.error)
@@ -107,6 +111,7 @@ fun CommentCard(data: CommentData, fullBody: Boolean = false) {
 @Composable
 fun CommentCardPreview() {
     CommentCard(
+        {},
         CommentData(
             12384,
             "The quick brown fox jumps over the lazy dog",

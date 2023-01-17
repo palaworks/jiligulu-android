@@ -15,8 +15,7 @@ fun SettingInputBox(
     label: String,
     hint: String,
 ) {
-    Card(
-    ) {
+    Card {
         Column(
             modifier = Modifier
         ) {

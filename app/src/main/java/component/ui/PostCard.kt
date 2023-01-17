@@ -24,7 +24,11 @@ import component.data.*
 
 @SuppressLint("SimpleDateFormat")
 @Composable
-fun PostCard(data: PostData, fullBody: Boolean = false) {
+fun PostCard(
+    navToDiff: (i64) -> Unit,
+    data: PostData,
+    fullBody: Boolean = false
+) {
     val fmt = SimpleDateFormat("yy-M-d h:mm")
     Card(
         modifier = Modifier
@@ -46,7 +50,7 @@ fun PostCard(data: PostData, fullBody: Boolean = false) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     IconButton(
-                        onClick = { /*TODO*/ },
+                        onClick = { navToDiff(data.id) },
                         modifier = Modifier
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.error)
@@ -132,6 +136,7 @@ fun PostCard(data: PostData, fullBody: Boolean = false) {
 @Composable
 fun PostCardPreview() {
     PostCard(
+        { },
         PostData(
             12384,
             "The quick brown fox jumps over the lazy dog",
