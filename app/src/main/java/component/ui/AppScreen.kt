@@ -6,12 +6,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Article
+import androidx.compose.material.icons.outlined.Comment
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import component.data.BottomNavBarItemData
 import component.data.CommentData
@@ -26,27 +32,34 @@ fun AppScreen(
     commentDataList: List<CommentData>
 ) {
     val navController = rememberNavController()
+    val st by navController.currentBackStackEntryAsState()
     Scaffold(
         modifier = Modifier,
         floatingActionButton = {
-            CreateButton {}
+            val onSettings =
+                st?.destination?.hierarchy?.any { x -> AppRoute.SETTINGS == x.route } == true
+            if (!onSettings)
+                CreateButton {}
         },
         bottomBar = {
             val dataList = listOf(
                 BottomNavBarItemData(
                     AppRoute.POSTS,
+                    Icons.Outlined.Article,
                     Icons.Default.Article
                 ),
                 BottomNavBarItemData(
                     AppRoute.COMMENTS,
+                    Icons.Outlined.Comment,
                     Icons.Default.Comment
                 ),
                 BottomNavBarItemData(
                     AppRoute.SETTINGS,
+                    Icons.Outlined.Settings,
                     Icons.Default.Settings
                 )
             )
-            BottomNavBar(dataList) {
+            BottomNavBar(navController, dataList) {
                 navController.navigate(it)
             }
         }
