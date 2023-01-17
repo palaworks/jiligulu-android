@@ -12,7 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun CreateButton(onClick: () -> Unit) {
+fun CreateButton(
+    onClick: () -> Unit
+) {
     FloatingActionButton(
         onClick = onClick,
         modifier = Modifier

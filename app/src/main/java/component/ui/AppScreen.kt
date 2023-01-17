@@ -65,7 +65,8 @@ fun AppScreen(
                     Spacer(modifier = Modifier.height(20.dp))
                     Text(
                         style = MaterialTheme.typography.headlineLarge,
-                        text = "Posts"
+                        text = "Posts",
+                        modifier = Modifier.padding(horizontal = 20.dp)
                     )
                     Spacer(modifier = Modifier.height(40.dp))
 
@@ -84,7 +85,8 @@ fun AppScreen(
                     Spacer(modifier = Modifier.height(20.dp))
                     Text(
                         style = MaterialTheme.typography.headlineLarge,
-                        text = "Comments"
+                        text = "Comments",
+                        modifier = Modifier.padding(horizontal = 20.dp)
                     )
                     Spacer(modifier = Modifier.height(40.dp))
 

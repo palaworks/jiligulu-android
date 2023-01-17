@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import component.data.BottomNavBarItemData
 
 @Composable
@@ -16,6 +17,7 @@ fun BottomNavBar(
 ) {
     NavigationBar(
         modifier = Modifier
+            .height(72.dp)
             .fillMaxWidth()
     ) {
         dataList.forEach {
