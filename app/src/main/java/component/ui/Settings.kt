@@ -5,7 +5,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -28,25 +31,21 @@ fun Settings(
             text = "gRPC channel"
         )
         Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            style = MaterialTheme.typography.titleLarge,
-            text = "Host"
-        )
-        Text(
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.outline,
-            text = "https://for.example.domain"
-        )
+        SettingItem(
+            "Host",
+            "E.g., https://for.example.domain",
+            false,
+        ) {
+
+        }
         Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            style = MaterialTheme.typography.titleLarge,
-            text = "Port"
-        )
-        Text(
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.outline,
-            text = "40040"
-        )
+        SettingItem(
+            "Port",
+            "E.g., 40040",
+            false
+        ) {
+
+        }
         Spacer(modifier = Modifier.height(40.dp))
 
         Text(
@@ -56,25 +55,21 @@ fun Settings(
             text = "pilipala account"
         )
         Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            style = MaterialTheme.typography.titleLarge,
-            text = "User id"
-        )
-        Text(
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.outline,
-            text = "1001"
-        )
+        SettingItem(
+            "User id",
+            "E.g., 1001",
+            false
+        ) {
+
+        }
         Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            style = MaterialTheme.typography.titleLarge,
-            text = "Password"
-        )
-        Text(
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.outline,
-            text = "******"
-        )
+        SettingItem(
+            "Password",
+            "E.g., 114514",
+            true
+        ) {
+
+        }
 
 /*
         TextField(
