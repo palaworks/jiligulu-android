@@ -17,10 +17,7 @@ import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
@@ -49,6 +46,8 @@ fun AppScreen(
     val navController = rememberNavController()
     val st by navController.currentBackStackEntryAsState()
 
+    var title by remember { mutableStateOf("Posts") }
+
     val navToPostDiff = { id: i64 ->
         navController.navigate("${AppRoute.POST_DIFF}/${id}")
     }
@@ -62,43 +61,47 @@ fun AppScreen(
         navController.navigate("${AppRoute.COMMENT_EDITOR}/${id}")
     }
 
-    Scaffold(modifier = Modifier, floatingActionButton = {
-        val onList = st?.destination?.hierarchy?.any { x ->
-            AppRoute.POSTS == x.route || AppRoute.COMMENTS == x.route
-        } == true
-        if (onList) CreateButton {}
-    }, bottomBar = {
-        val dataList = listOf(
-            BottomNavBarItemData(
-                AppRoute.POSTS, Icons.Outlined.Article, Icons.Default.Article
-            ), BottomNavBarItemData(
-                AppRoute.COMMENTS, Icons.Outlined.Comment, Icons.Default.Comment
-            ), BottomNavBarItemData(
-                AppRoute.SETTINGS, Icons.Outlined.Settings, Icons.Default.Settings
+    Scaffold(
+        modifier = Modifier,
+        floatingActionButton = {
+            val onList = st?.destination?.hierarchy?.any { x ->
+                AppRoute.POSTS == x.route || AppRoute.COMMENTS == x.route
+            } == true
+            if (onList) CreateButton {}
+        },
+        topBar = {
+            TopAppBar(
+                title = { Text(title) },
+                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
             )
-        )
-        BottomNavBar(navController, dataList) {
-            navController.navigate(it)
-        }
-    }) { contentPadding ->
+        },
+        bottomBar = {
+            val dataList = listOf(
+                BottomNavBarItemData(
+                    AppRoute.POSTS, Icons.Outlined.Article, Icons.Default.Article
+                ), BottomNavBarItemData(
+                    AppRoute.COMMENTS, Icons.Outlined.Comment, Icons.Default.Comment
+                ), BottomNavBarItemData(
+                    AppRoute.SETTINGS, Icons.Outlined.Settings, Icons.Default.Settings
+                )
+            )
+            BottomNavBar(navController, dataList) {
+                navController.navigate(it)
+            }
+        }) { contentPadding ->
         NavHost(
             navController = navController, startDestination = AppRoute.POSTS
         ) {
             composable(AppRoute.POSTS) {
+                title = "Posts"
+
                 Column(
                     modifier = Modifier
                         .padding(contentPadding)
                         .padding(horizontal = 10.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Text(
-                        style = MaterialTheme.typography.headlineLarge,
-                        text = "Posts",
-                        modifier = Modifier.padding(horizontal = 20.dp)
-                    )
-                    Spacer(modifier = Modifier.height(40.dp))
-
+                    Spacer(modifier = Modifier.height(10.dp))
                     CardList(postDataList) {
                         PostCard(navToPostDiff, navToPostEditor, it)
                     }
@@ -108,6 +111,8 @@ fun AppScreen(
                 "${AppRoute.POST_DIFF}/{id}",
                 arguments = listOf(navArgument("id") { type = NavType.LongType })
             ) { backStackEntry ->
+                title = "Post conflict"
+
                 val id = backStackEntry.arguments!!.getLong("id")
                 val localPost = PostData(
                     id,
@@ -127,6 +132,7 @@ fun AppScreen(
                     Date(),
                     Date(),
                 )
+
                 Column(
                     modifier = Modifier
                         .padding(contentPadding)
@@ -148,6 +154,8 @@ fun AppScreen(
                 "${AppRoute.POST_EDITOR}/{id}",
                 arguments = listOf(navArgument("id") { type = NavType.LongType })
             ) { backStackEntry ->
+                title = "Edit post"
+
                 val id = backStackEntry.arguments!!.getLong("id")
                 val fr = remember { FocusRequester() }
 
@@ -161,12 +169,7 @@ fun AppScreen(
                                 .padding(horizontal = 20.dp)
                                 .verticalScroll(rememberScrollState())
                         ) {
-                            Spacer(modifier = Modifier.height(20.dp))
-                            Text(
-                                style = MaterialTheme.typography.headlineLarge,
-                                text = "Post edit",
-                            )
-                            Spacer(modifier = Modifier.height(40.dp))
+                            Spacer(modifier = Modifier.height(10.dp))
 
                             PostEditor(fr, id) { _, _ -> }
                         }
@@ -194,20 +197,15 @@ fun AppScreen(
             }
 
             composable(AppRoute.COMMENTS) {
+                title = "Comments"
+
                 Column(
                     modifier = Modifier
                         .padding(contentPadding)
                         .padding(horizontal = 10.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Text(
-                        style = MaterialTheme.typography.headlineLarge,
-                        text = "Comments",
-                        modifier = Modifier.padding(horizontal = 20.dp)
-                    )
-                    Spacer(modifier = Modifier.height(40.dp))
-
+                    Spacer(modifier = Modifier.height(10.dp))
                     CardList(commentDataList) {
                         CommentCard(navToCommentDiff, navToCommentEditor, it)
                     }
@@ -217,6 +215,8 @@ fun AppScreen(
                 "${AppRoute.COMMENT_DIFF}/{id}",
                 arguments = listOf(navArgument("id") { type = NavType.LongType })
             ) { backStackEntry ->
+                title="Comment conflict"
+
                 val id = backStackEntry.arguments!!.getLong("id")
                 val localComment = CommentData(
                     id, """Local Body
@@ -234,14 +234,6 @@ fun AppScreen(
                         .padding(horizontal = 10.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Text(
-                        style = MaterialTheme.typography.headlineLarge,
-                        text = "Comment conflict",
-                        modifier = Modifier.padding(horizontal = 20.dp)
-                    )
-                    Spacer(modifier = Modifier.height(40.dp))
-
                     CommentDiffCard(Optional.of(localComment), Optional.of(remoteComment))
                 }
             }
@@ -249,6 +241,8 @@ fun AppScreen(
                 "${AppRoute.COMMENT_EDITOR}/{id}",
                 arguments = listOf(navArgument("id") { type = NavType.LongType })
             ) { backStackEntry ->
+                title="Edit comment"
+
                 val id = backStackEntry.arguments!!.getLong("id")
                 val fr = remember { FocusRequester() }
 
@@ -262,13 +256,7 @@ fun AppScreen(
                                 .padding(horizontal = 20.dp)
                                 .verticalScroll(rememberScrollState())
                         ) {
-                            Spacer(modifier = Modifier.height(20.dp))
-                            Text(
-                                style = MaterialTheme.typography.headlineLarge,
-                                text = "Comment edit",
-                            )
-                            Spacer(modifier = Modifier.height(40.dp))
-
+                            Spacer(modifier = Modifier.height(10.dp))
                             CommentEditor(fr, id) { }
                         }
 
@@ -295,13 +283,10 @@ fun AppScreen(
             }
 
             composable(AppRoute.SETTINGS) {
-                Column(modifier = Modifier.padding(horizontal = 30.dp)) {
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Text(
-                        style = MaterialTheme.typography.headlineLarge, text = "Settings"
-                    )
-                    Spacer(modifier = Modifier.height(40.dp))
+                title="Settings"
 
+                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    Spacer(modifier = Modifier.height(40.dp))
                     Settings(contentPadding)
                 }
             }

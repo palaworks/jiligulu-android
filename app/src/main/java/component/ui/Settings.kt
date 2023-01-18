@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.dp
 fun Settings(
     contentPadding: PaddingValues
 ) {
-    Spacer(modifier = Modifier.height(10.dp))
     Column(
         modifier = Modifier
             .padding(contentPadding)
@@ -46,6 +45,7 @@ fun Settings(
         ) {
 
         }
+
         Spacer(modifier = Modifier.height(40.dp))
 
         Text(
@@ -70,35 +70,6 @@ fun Settings(
         ) {
 
         }
-
-/*
-        TextField(
-            label = {
-            },
-            value = "https://for.example.domain",
-            onValueChange = {}
-        )
-        TextField(
-            label = {
-            },
-            value = "40040",
-            onValueChange = {}
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        TextField(
-            label = {
-            },
-            value = "1001",
-            onValueChange = {}
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        TextField(
-            label = {
-            },
-            value = "1234567890",
-            onValueChange = {}
-        )
-*/
     }
 }
 
