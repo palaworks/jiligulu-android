@@ -40,6 +40,6 @@ fun CardListPreview() {
             12384, "Hola", "Just hello world!", Date(), Date()
         )
     }) {
-        PostCard({}, it)
+        PostCard({}, {}, it)
     }
 }

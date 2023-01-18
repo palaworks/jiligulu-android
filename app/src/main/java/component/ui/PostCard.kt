@@ -26,13 +26,14 @@ import component.data.*
 @Composable
 fun PostCard(
     navToDiff: (i64) -> Unit,
+    navToEditor: (i64) -> Unit,
     data: PostData,
     fullBody: Boolean = false
 ) {
     val fmt = SimpleDateFormat("yy-M-d h:mm")
     Card(
         modifier = Modifier
-            .clickable { },
+            .clickable { navToEditor(data.id) },
         colors = CardDefaults.cardColors(
             MaterialTheme.colorScheme.surfaceVariant
         )
@@ -136,6 +137,7 @@ fun PostCard(
 @Composable
 fun PostCardPreview() {
     PostCard(
+        { },
         { },
         PostData(
             12384,

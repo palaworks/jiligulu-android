@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.node.modifierElementOf
 import androidx.compose.ui.text.style.TextOverflow
@@ -39,15 +40,21 @@ fun CommentDiffCard(
                 .fillMaxWidth()
                 .padding(20.dp)
         ) {
-            Text(
-                text = "Comment " + localComment
-                    .or { remoteComment }
-                    .map { it.id }
-                    .orElseThrow()
-                    .toString(),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Numbers,
+                    contentDescription = "Comment id"
+                )
+                Text(
+                    text = localComment
+                        .or { remoteComment }
+                        .map { it.id }
+                        .orElseThrow()
+                        .toString(),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
             Spacer(modifier = Modifier.height(10.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
