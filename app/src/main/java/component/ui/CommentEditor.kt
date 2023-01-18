@@ -57,7 +57,7 @@ fun CommentEditor(
                 .fillMaxWidth()
                 .focusRequester(bodyFocusRequester),
             value = bodyText,
-            textStyle = MaterialTheme.typography.titleLarge,
+            textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onBackground),
             decorationBox = { innerTextField ->
                 if (bodyText.isEmpty())
                     Text(

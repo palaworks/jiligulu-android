@@ -61,7 +61,7 @@ fun PostEditor(
                 .padding(vertical = 10.dp)
                 .fillMaxWidth(),
             value = titleText,
-            textStyle = MaterialTheme.typography.titleLarge,
+            textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onBackground),
             decorationBox = { innerTextField ->
                 if (titleText.isEmpty())
                     Text(
@@ -79,7 +79,7 @@ fun PostEditor(
                 .fillMaxWidth()
                 .focusRequester(bodyFocusRequester),
             value = bodyText,
-            textStyle = MaterialTheme.typography.bodyLarge,
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
             decorationBox = { innerTextField ->
                 if (bodyText.isEmpty())
                     Text(
