@@ -209,7 +209,7 @@ fun AppScreen(
                     Spacer(modifier = Modifier.height(40.dp))
 
                     CardList(commentDataList) {
-                        CommentCard(navToCommentDiff, it)
+                        CommentCard(navToCommentDiff, navToCommentEditor, it)
                     }
                 }
             }
@@ -248,8 +248,50 @@ fun AppScreen(
             composable(
                 "${AppRoute.COMMENT_EDITOR}/{id}",
                 arguments = listOf(navArgument("id") { type = NavType.LongType })
-            ) {
-                CommentEditor()
+            ) { backStackEntry ->
+                val id = backStackEntry.arguments!!.getLong("id")
+                val fr = remember { FocusRequester() }
+
+                Column(
+                    modifier = Modifier
+                        .padding(contentPadding)
+                ) {
+                    Column(modifier = Modifier.padding(bottom = 40.dp)) {
+                        Column(
+                            modifier = Modifier
+                                .padding(horizontal = 20.dp)
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            Spacer(modifier = Modifier.height(20.dp))
+                            Text(
+                                style = MaterialTheme.typography.headlineLarge,
+                                text = "Comment edit",
+                            )
+                            Spacer(modifier = Modifier.height(40.dp))
+
+                            CommentEditor(fr, id) { }
+                        }
+
+                        CompositionLocalProvider(LocalRippleTheme provides object : RippleTheme {
+                            @Composable
+                            override fun defaultColor(): Color = Color.Transparent
+
+                            @Composable
+                            override fun rippleAlpha() = RippleAlpha(
+                                draggedAlpha = 0.0f,
+                                focusedAlpha = 0.0f,
+                                hoveredAlpha = 0.0f,
+                                pressedAlpha = 0.0f,
+                            )
+                        }) {
+                            Column {
+                                Spacer(modifier = Modifier
+                                    .fillMaxSize()
+                                    .clickable { fr.requestFocus() })
+                            }
+                        }
+                    }
+                }
             }
 
             composable(AppRoute.SETTINGS) {

@@ -25,13 +25,14 @@ import component.data.*
 @Composable
 fun CommentCard(
     navToDiff: (Long) -> Unit,
+    navToEdit: (Long) -> Unit,
     data: CommentData,
     fullBody: Boolean = false
 ) {
     val fmt = SimpleDateFormat("yy-M-d h:mm")
     Card(
         modifier = Modifier
-            .clickable { },
+            .clickable { navToEdit(data.id) },
         colors = CardDefaults.cardColors(
             MaterialTheme.colorScheme.surfaceVariant
         )
@@ -111,6 +112,7 @@ fun CommentCard(
 @Composable
 fun CommentCardPreview() {
     CommentCard(
+        {},
         {},
         CommentData(
             12384,
