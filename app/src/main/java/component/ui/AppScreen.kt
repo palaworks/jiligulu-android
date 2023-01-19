@@ -8,11 +8,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Article
 import androidx.compose.material.icons.outlined.Comment
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
@@ -38,7 +41,7 @@ import unilang.alias.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun AppScreen(
     postDataList: List<PostData>, commentDataList: List<CommentData>
@@ -70,10 +73,7 @@ fun AppScreen(
             if (onList) CreateButton {}
         },
         topBar = {
-            TopAppBar(
-                title = { Text(title) },
-                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-            )
+            TopBar(title)
         },
         bottomBar = {
             val dataList = listOf(
@@ -94,6 +94,12 @@ fun AppScreen(
         ) {
             composable(AppRoute.POSTS) {
                 title = "Posts"
+
+                PullRefreshIndicator(
+                    refreshing = false, state = rememberPullRefreshState(
+                        refreshing = false,
+                        onRefresh = { /*TODO*/ })
+                )
 
                 Column(
                     modifier = Modifier
@@ -215,7 +221,7 @@ fun AppScreen(
                 "${AppRoute.COMMENT_DIFF}/{id}",
                 arguments = listOf(navArgument("id") { type = NavType.LongType })
             ) { backStackEntry ->
-                title="Comment conflict"
+                title = "Comment conflict"
 
                 val id = backStackEntry.arguments!!.getLong("id")
                 val localComment = CommentData(
@@ -241,7 +247,7 @@ fun AppScreen(
                 "${AppRoute.COMMENT_EDITOR}/{id}",
                 arguments = listOf(navArgument("id") { type = NavType.LongType })
             ) { backStackEntry ->
-                title="Edit comment"
+                title = "Edit comment"
 
                 val id = backStackEntry.arguments!!.getLong("id")
                 val fr = remember { FocusRequester() }
@@ -283,7 +289,7 @@ fun AppScreen(
             }
 
             composable(AppRoute.SETTINGS) {
-                title="Settings"
+                title = "Settings"
 
                 Column(modifier = Modifier.padding(horizontal = 20.dp)) {
                     Spacer(modifier = Modifier.height(40.dp))
