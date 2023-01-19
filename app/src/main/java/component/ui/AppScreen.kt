@@ -6,6 +6,7 @@ import android.os.strictmode.CleartextNetworkViolation
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
@@ -15,16 +16,19 @@ import androidx.compose.material.icons.outlined.Article
 import androidx.compose.material.icons.outlined.Comment
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -35,6 +39,8 @@ import androidx.navigation.navArgument
 import component.data.BottomNavBarItemData
 import component.data.CommentData
 import component.data.PostData
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import route.AppRoute
 import java.util.*
 import unilang.alias.*
@@ -95,22 +101,16 @@ fun AppScreen(
             composable(AppRoute.POSTS) {
                 title = "Posts"
 
-                PullRefreshIndicator(
-                    refreshing = false, state = rememberPullRefreshState(
-                        refreshing = false,
-                        onRefresh = { /*TODO*/ })
-                )
-
                 Column(
-                    modifier = Modifier
+                    Modifier
+                        .fillMaxSize()
                         .padding(contentPadding)
                         .padding(horizontal = 10.dp)
-                        .verticalScroll(rememberScrollState())
                 ) {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    CardList(postDataList) {
-                        PostCard(navToPostDiff, navToPostEditor, it)
-                    }
+                    CardList(
+                        itemFetcher = { postDataList },
+                        itemRender = { PostCard(navToPostDiff, navToPostEditor, it) }
+                    )
                 }
             }
             composable(
@@ -198,15 +198,15 @@ fun AppScreen(
                 title = "Comments"
 
                 Column(
-                    modifier = Modifier
+                    Modifier
+                        .fillMaxSize()
                         .padding(contentPadding)
                         .padding(horizontal = 10.dp)
-                        .verticalScroll(rememberScrollState())
                 ) {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    CardList(commentDataList) {
-                        CommentCard(navToCommentDiff, navToCommentEditor, it)
-                    }
+                    CardList(
+                        itemFetcher = { commentDataList },
+                        itemRender = { CommentCard(navToCommentDiff, navToCommentEditor, it) }
+                    )
                 }
             }
             composable(
