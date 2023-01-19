@@ -145,14 +145,6 @@ fun AppScreen(
                         .padding(horizontal = 10.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Text(
-                        style = MaterialTheme.typography.headlineLarge,
-                        text = "Post conflict",
-                        modifier = Modifier.padding(horizontal = 20.dp)
-                    )
-                    Spacer(modifier = Modifier.height(40.dp))
-
                     PostDiffCard(Optional.of(localPost), Optional.of(remotePost))
                 }
             }
