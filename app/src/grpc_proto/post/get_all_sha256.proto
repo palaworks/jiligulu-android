@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option csharp_namespace = "grpc_code_gen.post.get_all_sha256";
+option java_package = "grpc_code_gen.post.get_all_sha256";
+
+package post.get_all_sha256;
+
+message Req {
+  string Token = 1;
+}
+
+message Rsp {
+  bool Ok = 1;
+  string Msg = 2;
+  repeated IdAndSha256 Collection = 3;
+}
+
+message IdAndSha256 {
+  int64 Id = 1;
+  string Sha256 = 2;
+}

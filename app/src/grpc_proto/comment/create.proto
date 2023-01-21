@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option csharp_namespace = "grpc_code_gen.comment.create";
+option java_package = "grpc_code_gen.comment.create";
+
+import "get_one.proto";
+
+package comment.create;
+
+message Req {
+  string Token = 1;
+
+  int64 BindingId = 2;
+  bool IsReply = 3;
+  string Body = 4;
+}
+
+message Rsp {
+  bool Ok = 1;
+  string Msg = 2;
+  optional comment.get_one.T Data = 3;
+}

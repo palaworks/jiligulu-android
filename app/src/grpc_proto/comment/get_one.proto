@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+option csharp_namespace = "grpc_code_gen.comment.get_one";
+option java_package = "grpc_code_gen.comment.get_one";
+
+package comment.get_one;
+
+message Req {
+  string Token = 1;
+
+  int64 Id = 2;
+}
+
+message Rsp {
+  bool Ok = 1;
+  string Msg = 2;
+  optional T Data = 3;
+}
+
+message T {
+  int64 Id = 1;
+  //TODO
+  //int64 BindingId = 2;
+  //bool IsReply = 3;
+  string Body = 4;
+  string CreateTime = 5;//ISO-8601
+  //TODO
+  //string ModifyTime = 6;//ISO-8601
+}
