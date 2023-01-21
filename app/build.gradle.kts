@@ -48,6 +48,8 @@ android {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+
     val composeVersion = "1.3.3"
 
     implementation("androidx.core:core-ktx:1.9.0")
@@ -67,4 +69,14 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.3.1")
     implementation("com.google.accompanist:accompanist-adaptive:0.28.0")
     implementation("androidx.compose.material:material:1.3.1")
+
+    val grpcKotlinVersion = "1.3.0"
+    val grpcVersion = "1.51.3"
+    val protobufVersion = "3.21.12"
+
+    implementation("io.grpc:grpc-kotlin-stub:${grpcKotlinVersion}")
+    implementation("io.grpc:grpc-protobuf:${grpcVersion}")
+    implementation("com.google.protobuf:protobuf-kotlin:${protobufVersion}")
+    implementation("io.grpc:grpc-okhttp:1.52.1")
+    implementation("io.grpc:grpc-stub:1.52.1")
 }
