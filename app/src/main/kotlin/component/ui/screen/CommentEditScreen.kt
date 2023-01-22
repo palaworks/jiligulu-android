@@ -17,11 +17,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import component.ui.CommentEditor
 import unilang.alias.i64
+import java.util.Optional
 
 @Composable
 fun CommentEditScreen(
     contentPadding: PaddingValues,
-    id: i64
+    id: Optional<i64>
 ) {
     val fr = remember { FocusRequester() }
 

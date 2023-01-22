@@ -16,11 +16,12 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import unilang.alias.i64
+import java.util.Optional
 
 @Composable
 fun CommentEditor(
     bodyFocusRequester: FocusRequester,
-    id: i64,
+    id: Optional<i64>,
     afterSave: (String) -> Unit
 ) {
     var bodyText by remember { mutableStateOf("") }
@@ -37,7 +38,7 @@ fun CommentEditor(
                     contentDescription = "Comment id",
                 )
                 Text(
-                    text = id.toString(),
+                    text = id.map { it.toString() }.orElse("New"),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.outlineVariant
                 )
@@ -75,5 +76,5 @@ fun CommentEditor(
 @Preview
 @Composable
 fun CommentEditorPreview() {
-    CommentEditor(FocusRequester(), 114514) {}
+    CommentEditor(FocusRequester(), Optional.of(114514)) {}
 }

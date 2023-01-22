@@ -57,10 +57,23 @@ fun AppScreen(
     Scaffold(
         modifier = Modifier,
         floatingActionButton = {
-            val onList = st?.destination?.hierarchy?.any { x ->
-                AppRoute.POSTS == x.route || AppRoute.COMMENTS == x.route
-            } == true
-            if (onList) CreateButton {}
+            st?.destination?.hierarchy?.any {
+                when (it.route) {
+                    AppRoute.POST_LIST -> {
+                        CreateButton {
+                            navController.navigate(AppRoute.CREATE_POST)
+                        }
+                        true
+                    }
+                    AppRoute.COMMENT_LIST -> {
+                        CreateButton {
+                            navController.navigate(AppRoute.CREATE_COMMENT)
+                        }
+                        true
+                    }
+                    else -> false
+                }
+            }
         },
         topBar = {
             TopBar(title)
@@ -68,10 +81,12 @@ fun AppScreen(
         bottomBar = {
             val dataList = listOf(
                 BottomNavBarItemData(
-                    AppRoute.POSTS, Icons.Outlined.Article, Icons.Default.Article
-                ), BottomNavBarItemData(
-                    AppRoute.COMMENTS, Icons.Outlined.Comment, Icons.Default.Comment
-                ), BottomNavBarItemData(
+                    AppRoute.POST_LIST, Icons.Outlined.Article, Icons.Default.Article
+                ),
+                BottomNavBarItemData(
+                    AppRoute.COMMENT_LIST, Icons.Outlined.Comment, Icons.Default.Comment
+                ),
+                BottomNavBarItemData(
                     AppRoute.SETTINGS, Icons.Outlined.Settings, Icons.Default.Settings
                 )
             )
@@ -81,9 +96,9 @@ fun AppScreen(
         }
     ) { contentPadding ->
         NavHost(
-            navController = navController, startDestination = AppRoute.POSTS
+            navController = navController, startDestination = AppRoute.POST_LIST
         ) {
-            composable(AppRoute.POSTS) {
+            composable(AppRoute.POST_LIST) {
                 title = "Posts"
 
                 PostScreen(
@@ -94,7 +109,7 @@ fun AppScreen(
                     },
                     navToPostEditor = { id: i64 ->
                         navController
-                            .navigate("${AppRoute.POST_EDITOR}/${id}")
+                            .navigate("${AppRoute.MODIFY_POST}/${id}")
                     }
                 )
             }
@@ -107,17 +122,22 @@ fun AppScreen(
                 val id = getIdNavArg(entry)
                 PostDiffScreen(contentPadding = contentPadding, id = id)
             }
+            composable(AppRoute.CREATE_POST) {
+                title = "Create post"
+
+                PostEditScreen(contentPadding = contentPadding, id = Optional.empty())
+            }
             composable(
-                "${AppRoute.POST_EDITOR}/{id}",
+                "${AppRoute.MODIFY_POST}/{id}",
                 arguments = listOf(idNavArg)
             ) { entry ->
                 title = "Edit post"
 
                 val id = getIdNavArg(entry)
-                PostEditScreen(contentPadding = contentPadding, id = id)
+                PostEditScreen(contentPadding = contentPadding, id = Optional.of(id))
             }
 
-            composable(AppRoute.COMMENTS) {
+            composable(AppRoute.COMMENT_LIST) {
                 title = "Comments"
 
                 CommentScreen(
@@ -128,7 +148,7 @@ fun AppScreen(
                     },
                     navToCommentEditor = { id: i64 ->
                         navController
-                            .navigate("${AppRoute.COMMENT_EDITOR}/${id}")
+                            .navigate("${AppRoute.MODIFY_COMMENT}/${id}")
                     }
                 )
             }
@@ -141,14 +161,19 @@ fun AppScreen(
                 val id = getIdNavArg(entry)
                 CommentDiffScreen(contentPadding = contentPadding, id = id)
             }
+            composable(AppRoute.CREATE_COMMENT) {
+                title = "Create comment"
+
+                CommentEditScreen(contentPadding = contentPadding, id = Optional.empty())
+            }
             composable(
-                "${AppRoute.COMMENT_EDITOR}/{id}",
+                "${AppRoute.MODIFY_COMMENT}/{id}",
                 arguments = listOf(idNavArg)
             ) { entry ->
                 title = "Edit comment"
 
                 val id = getIdNavArg(entry)
-                CommentEditScreen(contentPadding = contentPadding, id = id)
+                CommentEditScreen(contentPadding = contentPadding, id = Optional.of(id))
             }
 
             composable(AppRoute.SETTINGS) {
