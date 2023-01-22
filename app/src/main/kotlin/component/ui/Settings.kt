@@ -2,17 +2,22 @@ package component.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.room.Room
+import data.AppSettingDatabase
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Settings(
     contentPadding: PaddingValues
 ) {
+    val appSettingDao = AppSettingDatabase.getDatabase(LocalContext.current).appSettingDao()
+    var appSetting by remember { mutableStateOf(appSettingDao.get()) }
+
     Column(
         modifier = Modifier
             .padding(contentPadding)
@@ -29,16 +34,20 @@ fun Settings(
             "Host",
             "E.g., https://for.example.domain",
             false,
+            appSetting.grpcHost.toString(),
         ) {
-
+            appSettingDao.update(appSetting.copy(grpcHost = it))
+            appSetting = appSettingDao.get()
         }
         Spacer(modifier = Modifier.height(20.dp))
         SettingItem(
             "Port",
             "E.g., 40040",
-            false
+            false,
+            appSetting.grpcPort.toString()
         ) {
-
+            appSettingDao.update(appSetting.copy(grpcPort = it))
+            appSetting = appSettingDao.get()
         }
 
         Spacer(modifier = Modifier.height(40.dp))
@@ -53,17 +62,21 @@ fun Settings(
         SettingItem(
             "User id",
             "E.g., 1001",
-            false
+            false,
+            appSetting.pilipalaUid.toString()
         ) {
-
+            appSettingDao.update(appSetting.copy(pilipalaUid = it))
+            appSetting = appSettingDao.get()
         }
         Spacer(modifier = Modifier.height(20.dp))
         SettingItem(
             "Password",
             "E.g., 114514",
-            true
+            true,
+            appSetting.pilipalaPwd.toString()
         ) {
-
+            appSettingDao.update(appSetting.copy(pilipalaPwd = it))
+            appSetting = appSettingDao.get()
         }
     }
 }

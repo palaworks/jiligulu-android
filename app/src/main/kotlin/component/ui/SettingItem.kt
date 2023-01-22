@@ -14,9 +14,10 @@ fun SettingItem(
     title: String,
     hint: String,
     passwordMode: Boolean,
+    init: String?,
     onSave: (String) -> Unit
 ) {
-    var settingValue by remember { mutableStateOf("") }
+    var settingValue by remember { mutableStateOf(init.orEmpty()) }
     var openDialog by remember { mutableStateOf(false) }
 
     if (openDialog)
@@ -53,4 +54,11 @@ fun SettingItem(
 @Preview
 @Composable
 fun SettingItemPreview() {
+    SettingItem(
+        "Password",
+        "E.g., 114514",
+        true,
+        "foo"
+    ) {
+    }
 }
