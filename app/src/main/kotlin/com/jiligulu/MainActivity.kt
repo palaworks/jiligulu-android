@@ -16,28 +16,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val postDataList = List(8) {
-                PostData(
-                    12384,
-                    "Hello world!",
-                    "The quick brown fox jumps over the lazy dog",
-                    Date(),
-                    Date()
-                )
-            }
-            val commentDataList = List(8) {
-                CommentData(
-                    12384,
-                    "The quick brown fox jumps over the lazy dog",
-                    Date()
-                )
-            }
-
             AppTheme {
-                AppScreen(
-                    postDataList = postDataList,
-                    commentDataList = commentDataList
-                )
+                AppScreen()
             }
         }
     }
