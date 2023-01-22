@@ -1,4 +1,4 @@
-package component.ui.screen
+package component.screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable

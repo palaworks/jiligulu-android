@@ -8,7 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import component.data.PostData
+import data.ui.PostData
 import java.util.*
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.filled.*

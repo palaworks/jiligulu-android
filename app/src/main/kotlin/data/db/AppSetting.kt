@@ -1,11 +1,12 @@
-package data
+package data.db
 
 import android.content.Context
 import androidx.room.*
+import unilang.alias.i32
 
 @Entity(tableName = "app_setting")
 data class AppSetting(
-    @PrimaryKey val setting_id: Int,
+    @PrimaryKey val setting_id: i32,
     @ColumnInfo(name = "grpc_host") val grpcHost: String?,
     @ColumnInfo(name = "grpc_port") val grpcPort: String?,
     @ColumnInfo(name = "pilipala_uid") val pilipalaUid: String?,
@@ -15,10 +16,10 @@ data class AppSetting(
 @Dao
 interface AppSettingDao {
     @Query("SELECT * FROM app_setting WHERE setting_id = 0")
-    fun get(): AppSetting
+    fun maybe(): AppSetting?
 
     @Query("SELECT * FROM app_setting WHERE setting_id = 0")
-    fun maybe(): AppSetting?
+    fun get(): AppSetting
 
     @Insert
     fun insert(appSetting: AppSetting)

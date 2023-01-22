@@ -1,4 +1,4 @@
-package component.data
+package data.ui
 
 import androidx.compose.ui.graphics.vector.ImageVector
 

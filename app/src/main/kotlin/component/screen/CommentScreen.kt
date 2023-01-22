@@ -1,4 +1,4 @@
-package component.ui.screen
+package component.screen
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import component.data.CommentData
+import data.ui.CommentData
 import component.ui.CardList
 import component.ui.CommentCard
 import unilang.alias.i64

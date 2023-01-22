@@ -1,4 +1,4 @@
-package component.ui.screen
+package component.screen
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -10,7 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import component.data.PostData
+import data.ui.PostData
 import component.ui.PostDiffCard
 import unilang.alias.i64
 import java.util.*

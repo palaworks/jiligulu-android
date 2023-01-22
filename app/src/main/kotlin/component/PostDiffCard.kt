@@ -5,7 +5,10 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -13,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import component.data.CommentData
+import data.ui.PostData
 import unilang.hash.sha256
 import java.text.SimpleDateFormat
 import java.util.*
@@ -21,9 +24,9 @@ import java.util.*
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("SimpleDateFormat")
 @Composable
-fun CommentDiffCard(
-    localComment: Optional<CommentData>,
-    remoteComment: Optional<CommentData>
+fun PostDiffCard(
+    localPost: Optional<PostData>,
+    remotePost: Optional<PostData>
 ) {
     val fmt = SimpleDateFormat("yy-M-d h:mm")
     Column(
@@ -34,11 +37,11 @@ fun CommentDiffCard(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Default.Numbers,
-                contentDescription = "Comment id"
+                contentDescription = "Comment id",
             )
             Text(
-                text = localComment
-                    .or { remoteComment }
+                text = localPost
+                    .or { remotePost }
                     .map { it.id }
                     .orElseThrow()
                     .toString(),
@@ -71,7 +74,7 @@ fun CommentDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = localComment.map { it.body.sha256() }.orElse("-"),
+                    text = localPost.map { it.body.sha256() }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.outline
@@ -85,9 +88,44 @@ fun CommentDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = remoteComment.map { it.body.sha256() }.orElse("-"),
+                    text = remotePost.map { it.body.sha256() }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Title",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Text(
+                    text = localPost.map { it.title }.orElse("-"),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.outline,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Title",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Text(
+                    text = remotePost.map { it.title }.orElse("-"),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.outline,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -103,7 +141,7 @@ fun CommentDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = localComment.map { it.body }.orElse("-"),
+                    text = localPost.map { it.body }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline,
                     maxLines = 3,
@@ -118,7 +156,7 @@ fun CommentDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = remoteComment.map { it.body }.orElse("-"),
+                    text = remotePost.map { it.body }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline,
                     maxLines = 3,
@@ -138,7 +176,7 @@ fun CommentDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = localComment.map { fmt.format(it.createTime) }.orElse("-"),
+                    text = localPost.map { fmt.format(it.createTime) }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
                 )
@@ -151,7 +189,7 @@ fun CommentDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = remoteComment.map { fmt.format(it.createTime) }.orElse("-"),
+                    text = remotePost.map { fmt.format(it.createTime) }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
                 )
@@ -166,7 +204,7 @@ fun CommentDiffCard(
                 onClick = { /*TODO*/ }
             ) {
                 val (text, icon) =
-                    if (localComment.isEmpty)
+                    if (localPost.isEmpty)
                         Pair(
                             "Delete Remote",
                             Icons.Default.Delete
@@ -188,7 +226,7 @@ fun CommentDiffCard(
                 onClick = { /*TODO*/ }
             ) {
                 val (text, icon) =
-                    if (remoteComment.isEmpty)
+                    if (remotePost.isEmpty)
                         Pair(
                             "Delete Local",
                             Icons.Default.Delete
@@ -212,24 +250,28 @@ fun CommentDiffCard(
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Preview
 @Composable
-fun CommentDiffCardPreview() {
-    val localComment = CommentData(
-        24051968,
+fun PostDiffCardPreview() {
+    val localPost = PostData(
+        12384,
+        "Hello world!",
         """Local Body
           |The quick brown fox jumps over the lazy dog.
         """.trimMargin(),
-        Date()
+        Date(),
+        Date(),
     )
-    val remoteComment = CommentData(
-        24051968,
+    val remotePost = PostData(
+        12384,
+        "Hello world!",
         """Remote Body
           |The quick brown fox jumps over the lazy dog.
         """.trimMargin(),
-        Date()
+        Date(),
+        Date(),
     )
     Column {
-        //CommentDiffCard(Optional.of(localComment), Optional.of(remoteComment))
-        CommentDiffCard(Optional.of(localComment), Optional.empty())
-        CommentDiffCard(Optional.empty(), Optional.of(remoteComment))
+        //PostDiffCard(Optional.of(localPost), Optional.of(remotePost))
+        PostDiffCard(Optional.of(localPost), Optional.empty())
+        PostDiffCard(Optional.empty(), Optional.of(remotePost))
     }
 }

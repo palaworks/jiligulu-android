@@ -1,4 +1,4 @@
-package component.data
+package data.ui
 
 import java.util.*
 import unilang.alias.*

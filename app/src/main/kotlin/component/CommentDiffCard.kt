@@ -5,10 +5,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Numbers
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import component.data.PostData
+import data.ui.CommentData
 import unilang.hash.sha256
 import java.text.SimpleDateFormat
 import java.util.*
@@ -24,9 +21,9 @@ import java.util.*
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("SimpleDateFormat")
 @Composable
-fun PostDiffCard(
-    localPost: Optional<PostData>,
-    remotePost: Optional<PostData>
+fun CommentDiffCard(
+    localComment: Optional<CommentData>,
+    remoteComment: Optional<CommentData>
 ) {
     val fmt = SimpleDateFormat("yy-M-d h:mm")
     Column(
@@ -37,11 +34,11 @@ fun PostDiffCard(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Default.Numbers,
-                contentDescription = "Comment id",
+                contentDescription = "Comment id"
             )
             Text(
-                text = localPost
-                    .or { remotePost }
+                text = localComment
+                    .or { remoteComment }
                     .map { it.id }
                     .orElseThrow()
                     .toString(),
@@ -74,7 +71,7 @@ fun PostDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = localPost.map { it.body.sha256() }.orElse("-"),
+                    text = localComment.map { it.body.sha256() }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.outline
@@ -88,7 +85,7 @@ fun PostDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = remotePost.map { it.body.sha256() }.orElse("-"),
+                    text = remoteComment.map { it.body.sha256() }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
                 )
@@ -101,47 +98,12 @@ fun PostDiffCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Title",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-                Text(
-                    text = localPost.map { it.title }.orElse("-"),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.outline,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            Spacer(modifier = Modifier.width(10.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Title",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-                Text(
-                    text = remotePost.map { it.title }.orElse("-"),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.outline,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(10.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
                     text = "Body",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = localPost.map { it.body }.orElse("-"),
+                    text = localComment.map { it.body }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline,
                     maxLines = 3,
@@ -156,7 +118,7 @@ fun PostDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = remotePost.map { it.body }.orElse("-"),
+                    text = remoteComment.map { it.body }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline,
                     maxLines = 3,
@@ -176,7 +138,7 @@ fun PostDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = localPost.map { fmt.format(it.createTime) }.orElse("-"),
+                    text = localComment.map { fmt.format(it.createTime) }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
                 )
@@ -189,7 +151,7 @@ fun PostDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = remotePost.map { fmt.format(it.createTime) }.orElse("-"),
+                    text = remoteComment.map { fmt.format(it.createTime) }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
                 )
@@ -204,7 +166,7 @@ fun PostDiffCard(
                 onClick = { /*TODO*/ }
             ) {
                 val (text, icon) =
-                    if (localPost.isEmpty)
+                    if (localComment.isEmpty)
                         Pair(
                             "Delete Remote",
                             Icons.Default.Delete
@@ -226,7 +188,7 @@ fun PostDiffCard(
                 onClick = { /*TODO*/ }
             ) {
                 val (text, icon) =
-                    if (remotePost.isEmpty)
+                    if (remoteComment.isEmpty)
                         Pair(
                             "Delete Local",
                             Icons.Default.Delete
@@ -250,28 +212,24 @@ fun PostDiffCard(
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Preview
 @Composable
-fun PostDiffCardPreview() {
-    val localPost = PostData(
-        12384,
-        "Hello world!",
+fun CommentDiffCardPreview() {
+    val localComment = CommentData(
+        24051968,
         """Local Body
           |The quick brown fox jumps over the lazy dog.
         """.trimMargin(),
-        Date(),
-        Date(),
+        Date()
     )
-    val remotePost = PostData(
-        12384,
-        "Hello world!",
+    val remoteComment = CommentData(
+        24051968,
         """Remote Body
           |The quick brown fox jumps over the lazy dog.
         """.trimMargin(),
-        Date(),
-        Date(),
+        Date()
     )
     Column {
-        //PostDiffCard(Optional.of(localPost), Optional.of(remotePost))
-        PostDiffCard(Optional.of(localPost), Optional.empty())
-        PostDiffCard(Optional.empty(), Optional.of(remotePost))
+        //CommentDiffCard(Optional.of(localComment), Optional.of(remoteComment))
+        CommentDiffCard(Optional.of(localComment), Optional.empty())
+        CommentDiffCard(Optional.empty(), Optional.of(remoteComment))
     }
 }

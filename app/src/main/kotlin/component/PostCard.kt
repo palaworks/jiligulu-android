@@ -18,6 +18,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import unilang.alias.*
 import component.data.*
+import data.ui.PostData
 
 @SuppressLint("SimpleDateFormat")
 @Composable

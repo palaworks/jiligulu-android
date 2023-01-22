@@ -16,7 +16,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import component.data.BottomNavBarItemData
+import data.ui.BottomNavBarItemData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
