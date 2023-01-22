@@ -1,22 +1,22 @@
-package component.ui
+package component
 
-import android.annotation.SuppressLint
+import java.util.*
 import android.os.Build
-import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import data.ui.CommentData
 import unilang.hash.sha256
 import java.text.SimpleDateFormat
-import java.util.*
+import androidx.compose.ui.unit.dp
+import androidx.compose.material3.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import android.annotation.SuppressLint
+import androidx.annotation.RequiresApi
+import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("SimpleDateFormat")

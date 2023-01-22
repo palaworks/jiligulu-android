@@ -1,19 +1,19 @@
 package component.screen
 
-import android.os.Build
-import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import data.ui.PostData
-import component.ui.PostDiffCard
-import unilang.alias.i64
 import java.util.*
+import android.os.Build
+import data.ui.PostData
+import unilang.alias.i64
+import component.PostDiffCard
+import androidx.compose.ui.unit.dp
+import androidx.annotation.RequiresApi
+import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.PaddingValues
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable

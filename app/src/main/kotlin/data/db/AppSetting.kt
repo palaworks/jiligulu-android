@@ -1,8 +1,8 @@
 package data.db
 
-import android.content.Context
 import androidx.room.*
 import unilang.alias.i32
+import android.content.Context
 
 @Entity(tableName = "app_setting")
 data class AppSetting(

@@ -1,18 +1,18 @@
 package component.screen
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import data.ui.PostData
-import component.ui.CardList
-import component.ui.PostCard
-import unilang.alias.i64
 import java.util.*
+import data.ui.PostData
+import unilang.alias.i64
+import component.CardList
+import component.PostCard
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Modifier
+import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.PaddingValues
 
 val postDataList = List(8) {
     PostData(

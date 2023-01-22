@@ -1,9 +1,10 @@
 package data.db
 
-import android.content.Context
+import java.util.Date
 import androidx.room.*
 import unilang.alias.i64
-import java.util.Date
+import android.content.Context
+import data.db.converter.DateConverter
 
 @Entity(tableName = "local_post")
 data class LocalPost(
@@ -32,6 +33,7 @@ interface LocalPostDao {
     fun delete(localPost: LocalPost)
 }
 
+@TypeConverters(DateConverter::class)
 @Database(entities = [LocalPost::class], version = 1)
 abstract class LocalPostDatabase : RoomDatabase() {
     abstract fun localPostDao(): LocalPostDao

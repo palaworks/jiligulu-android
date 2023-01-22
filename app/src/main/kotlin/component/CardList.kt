@@ -1,25 +1,24 @@
-package component.ui
+package component
 
-import android.annotation.SuppressLint
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import data.ui.PostData
 import java.util.*
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import data.ui.PostData
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
+import androidx.compose.runtime.*
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Modifier
+import androidx.compose.material3.*
+import androidx.compose.ui.Alignment
+import android.annotation.SuppressLint
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.filled.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 
 @OptIn(ExperimentalMaterialApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")

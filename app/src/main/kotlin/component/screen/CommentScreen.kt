@@ -1,18 +1,18 @@
 package component.screen
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import data.ui.CommentData
-import component.ui.CardList
-import component.ui.CommentCard
-import unilang.alias.i64
 import java.util.*
+import unilang.alias.i64
+import data.ui.CommentData
+import component.CardList
+import component.CommentCard
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Modifier
+import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.PaddingValues
 
 val commentDataList = List(8) {
     CommentData(

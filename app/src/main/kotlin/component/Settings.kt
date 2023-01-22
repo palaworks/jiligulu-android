@@ -1,15 +1,14 @@
-package component.ui
+package component
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import data.db.AppSettingDatabase
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.room.Room
-import data.AppSettingDatabase
+import androidx.compose.material3.*
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun Settings(

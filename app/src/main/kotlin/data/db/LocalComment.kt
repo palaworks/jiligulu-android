@@ -1,9 +1,10 @@
 package data.db
 
-import android.content.Context
+import java.util.Date
 import androidx.room.*
 import unilang.alias.i64
-import java.util.Date
+import android.content.Context
+import data.db.converter.DateConverter
 
 @Entity(tableName = "local_comment")
 data class LocalComment(
@@ -30,6 +31,7 @@ interface LocalCommentDao {
     fun delete(localComment: LocalComment)
 }
 
+@TypeConverters(DateConverter::class)
 @Database(entities = [LocalComment::class], version = 1)
 abstract class LocalCommentDatabase : RoomDatabase() {
     abstract fun localCommentDao(): LocalCommentDao

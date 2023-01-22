@@ -1,13 +1,13 @@
-package component.ui
+package component
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.material3.Text
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.layout.fillMaxWidth
 
 @Composable
 fun SettingItem(

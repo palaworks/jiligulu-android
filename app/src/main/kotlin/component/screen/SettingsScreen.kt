@@ -1,12 +1,11 @@
 package component.screen
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import component.Settings
 import androidx.compose.ui.unit.dp
-import component.ui.Settings
-import unilang.alias.i64
+import androidx.compose.ui.Modifier
+import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun SettingsScreen(

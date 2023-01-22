@@ -1,24 +1,23 @@
-package component.ui
+package component
 
-import android.annotation.SuppressLint
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import java.text.SimpleDateFormat
 import java.util.*
 import unilang.alias.*
-import component.data.*
 import data.ui.PostData
+import java.text.SimpleDateFormat
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Modifier
+import androidx.compose.material3.*
+import androidx.compose.ui.draw.clip
+import android.annotation.SuppressLint
+import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.background
+import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.shape.CircleShape
 
 @SuppressLint("SimpleDateFormat")
 @Composable
