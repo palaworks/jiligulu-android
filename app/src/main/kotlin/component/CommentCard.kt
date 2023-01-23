@@ -23,7 +23,7 @@ import androidx.compose.material.icons.outlined.AddComment
 @SuppressLint("SimpleDateFormat")
 @Composable
 fun CommentCard(
-    navToDiff: (Long) -> Unit,
+    navToDiff: Optional<(Long) -> Unit>,
     navToEdit: (Long) -> Unit,
     data: CommentData,
     fullBody: Boolean = false
@@ -45,19 +45,22 @@ fun CommentCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                IconButton(
-                    onClick = { navToDiff(data.id) },
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.error)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Merge,
-                        contentDescription = "Resolve conflict",
-                        tint = MaterialTheme.colorScheme.onError
-                    )
+                if (navToDiff.isPresent) {
+                    IconButton(
+                        onClick = { navToDiff.get()(data.id) },
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.error)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Merge,
+                            contentDescription = "Resolve conflict",
+                            tint = MaterialTheme.colorScheme.onError
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
                 }
-                Spacer(modifier = Modifier.width(16.dp))
+
                 Text(
                     text = data.body,
                     style = MaterialTheme.typography.titleMedium,
@@ -110,13 +113,24 @@ fun CommentCard(
 @Preview
 @Composable
 fun CommentCardPreview() {
-    CommentCard(
-        {},
-        {},
-        CommentData(
-            12384,
-            "The quick brown fox jumps over the lazy dog",
-            Date()
+    Column {
+        CommentCard(
+            Optional.of {},
+            {},
+            CommentData(
+                12384,
+                "The quick brown fox jumps over the lazy dog",
+                Date()
+            )
         )
-    )
+        CommentCard(
+            Optional.empty(),
+            {},
+            CommentData(
+                12384,
+                "The quick brown fox jumps over the lazy dog",
+                Date()
+            )
+        )
+    }
 }

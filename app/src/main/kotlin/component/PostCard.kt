@@ -22,7 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 @SuppressLint("SimpleDateFormat")
 @Composable
 fun PostCard(
-    navToDiff: (i64) -> Unit,
+    navToDiff: Optional<(i64) -> Unit>,
     navToEditor: (i64) -> Unit,
     data: PostData,
     fullBody: Boolean = false
@@ -47,19 +47,21 @@ fun PostCard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    IconButton(
-                        onClick = { navToDiff(data.id) },
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.error)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Merge,
-                            contentDescription = "Resolve conflict",
-                            tint = MaterialTheme.colorScheme.onError
-                        )
+                    if (navToDiff.isPresent) {
+                        IconButton(
+                            onClick = { navToDiff.get()(data.id) },
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.error)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Merge,
+                                contentDescription = "Resolve conflict",
+                                tint = MaterialTheme.colorScheme.onError
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
                     }
-                    Spacer(modifier = Modifier.width(16.dp))
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -133,15 +135,28 @@ fun PostCard(
 @Preview
 @Composable
 fun PostCardPreview() {
-    PostCard(
-        { },
-        { },
-        PostData(
-            12384,
-            "The quick brown fox jumps over the lazy dog",
-            "The quick brown fox jumps over the lazy dog",
-            Date(),
-            Date()
+    Column {
+        PostCard(
+            Optional.of { },
+            { },
+            PostData(
+                12384,
+                "The quick brown fox jumps over the lazy dog",
+                "The quick brown fox jumps over the lazy dog",
+                Date(),
+                Date()
+            )
         )
-    )
+        PostCard(
+            Optional.empty(),
+            { },
+            PostData(
+                12384,
+                "The quick brown fox jumps over the lazy dog",
+                "The quick brown fox jumps over the lazy dog",
+                Date(),
+                Date()
+            )
+        )
+    }
 }
