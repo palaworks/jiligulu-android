@@ -5,7 +5,9 @@ import io.grpc.ManagedChannel
 import unilang.alias.i64
 import java.util.Optional
 
-class TokenService(channel: ManagedChannel) {
+class TokenService(
+    channel: ManagedChannel
+) {
     private val stub = TokenServiceGrpcKt.TokenServiceCoroutineStub(channel)
 
     suspend fun getOne(uid: i64, pwd: String): Optional<String> {

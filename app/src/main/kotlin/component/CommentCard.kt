@@ -61,7 +61,7 @@ fun CommentCard(
                 Text(
                     text = data.body,
                     style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
+                    maxLines = if (fullBody) i32.MAX_VALUE else 2,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier

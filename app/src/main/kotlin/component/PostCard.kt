@@ -90,7 +90,7 @@ fun PostCard(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 10.dp),
-                    maxLines = 2,
+                    maxLines = if (fullBody) i32.MAX_VALUE else 2,
                     overflow = TextOverflow.Ellipsis,
                 )
             }

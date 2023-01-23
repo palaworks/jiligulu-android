@@ -1,4 +1,4 @@
-package route
+package global
 
 object AppRoute {
     const val POST_LIST = "post_list"

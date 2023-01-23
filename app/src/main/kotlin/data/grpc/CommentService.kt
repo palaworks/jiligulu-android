@@ -9,7 +9,10 @@ import unilang.time.Iso8601
 import unilang.time.toDate
 import java.util.*
 
-class CommentService(channel: ManagedChannel, private val getToken: () -> String) {
+class CommentService(
+    channel: ManagedChannel,
+    private val getToken: () -> String
+) {
     private val stub = CommentServiceGrpcKt.CommentServiceCoroutineStub(channel)
 
     suspend fun getOne(id: i64): Optional<CommentData> {

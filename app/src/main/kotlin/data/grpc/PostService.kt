@@ -9,7 +9,10 @@ import grpc_code_gen.post.PostServiceGrpcKt
 import unilang.time.Iso8601
 import unilang.time.toDate
 
-class PostService(channel: ManagedChannel, private val getToken: () -> String) {
+class PostService(
+    channel: ManagedChannel,
+    private val getToken: () -> String
+) {
     private val stub = PostServiceGrpcKt.PostServiceCoroutineStub(channel)
 
     suspend fun getOne(id: i64): Optional<PostData> {
