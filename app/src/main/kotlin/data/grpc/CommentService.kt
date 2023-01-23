@@ -28,6 +28,8 @@ class CommentService(
                 CommentData(
                     id = rsp.data.id,
                     body = rsp.data.body,
+                    bindingId = rsp.data.bindingId,
+                    isReply = rsp.data.isReply,
                     createTime = Iso8601(rsp.data.createTime).toDate(),
                 )
             )
@@ -46,6 +48,8 @@ class CommentService(
             CommentData(
                 it.id,
                 it.body,
+                it.bindingId,
+                it.isReply,
                 Iso8601(it.createTime).toDate()
             )
         }
@@ -80,6 +84,8 @@ class CommentService(
                 CommentData(
                     rsp.data.id,
                     rsp.data.body,
+                    rsp.data.bindingId,
+                    rsp.data.isReply,
                     Iso8601(rsp.data.createTime).toDate()
                 )
             )
@@ -112,6 +118,8 @@ class CommentService(
                 CommentData(
                     rsp.data.id,
                     rsp.data.body,
+                    rsp.data.bindingId,
+                    rsp.data.isReply,
                     Iso8601(rsp.data.createTime).toDate()
                 )
             )

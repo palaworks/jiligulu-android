@@ -120,6 +120,8 @@ fun CommentCardPreview() {
             CommentData(
                 12384,
                 "The quick brown fox jumps over the lazy dog",
+                114514,
+                false,
                 Date()
             )
         )
@@ -129,6 +131,8 @@ fun CommentCardPreview() {
             CommentData(
                 12384,
                 "The quick brown fox jumps over the lazy dog",
+                114514,
+                true,
                 Date()
             )
         )

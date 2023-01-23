@@ -1,44 +1,47 @@
 package component.screen
 
+import android.annotation.SuppressLint
 import java.util.*
 import android.os.Build
 import data.ui.PostData
-import unilang.alias.i64
 import component.PostDiffCard
 import androidx.compose.ui.unit.dp
 import androidx.annotation.RequiresApi
-import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import data.db.LocalPostDatabase
+import data.grpc.PostService
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import unilang.alias.i64
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun PostDiffScreen(
     contentPadding: PaddingValues,
+    postService: PostService,
     id: i64
 ) {
-    val localPost = PostData(
-        id,
-        "Hello world!",
-        """Local Body
-                      |The quick brown fox jumps over the lazy dog.
-                    """.trimMargin(),
-        Date(),
-        Date(),
-    )
-    val remotePost = PostData(
-        id,
-        "Hello world!",
-        """Remote Body
-                      |The quick brown fox jumps over the lazy dog.
-                    """.trimMargin(),
-        Date(),
-        Date(),
-    )
+    //TODO async fetch
+    val localData = LocalPostDatabase.getDatabase(LocalContext.current).localPostDao().maybe(id)
+
+    val localPost = if (localData == null)
+        Optional.empty()
+    else
+        Optional.of(PostData(localData))
+
+    var remotePost by remember { mutableStateOf(Optional.empty<PostData>()) }
+
+    rememberCoroutineScope().launch {
+        remotePost = postService.getOne(id)
+    }
 
     Column(
         modifier = androidx.compose.ui.Modifier
@@ -46,7 +49,13 @@ fun PostDiffScreen(
             .padding(horizontal = 10.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        PostDiffCard(Optional.of(localPost), Optional.of(remotePost))
+        PostDiffCard(
+            localPost,
+            remotePost,
+            postService,
+            afterApplyLocal = {},
+            afterApplyRemote = {}
+        )
     }
 }
 

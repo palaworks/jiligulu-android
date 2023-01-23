@@ -1,9 +1,9 @@
 package component
 
 import java.util.*
+import data.ui.sha256
 import data.ui.PostData
 import android.os.Build
-import unilang.hash.sha256
 import java.text.SimpleDateFormat
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.*
@@ -20,14 +20,22 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.ArrowDownward
-import data.ui.sha256
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import data.db.LocalPost
+import data.db.LocalPostDatabase
+import data.grpc.PostService
+import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-@SuppressLint("SimpleDateFormat")
+@SuppressLint("SimpleDateFormat", "CoroutineCreationDuringComposition")
 @Composable
 fun PostDiffCard(
     localPost: Optional<PostData>,
-    remotePost: Optional<PostData>
+    remotePost: Optional<PostData>,
+    postService: PostService,
+    afterApplyLocal: () -> Unit,
+    afterApplyRemote: () -> Unit,
 ) {
     val fmt = SimpleDateFormat("yy-M-d h:mm")
     Column(
@@ -201,9 +209,56 @@ fun PostDiffCard(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Button(
-                onClick = { /*TODO*/ }
-            ) {
+            val coroutineScope = rememberCoroutineScope()
+            val ctx = LocalContext.current
+
+            fun applyLocal() = coroutineScope.launch {
+                //TODO handle err
+                if (remotePost.isEmpty) {
+                    val post = localPost.get()
+                    postService.create(post.title, post.body)
+                } else if (localPost.isEmpty)
+                    postService.delete(remotePost.get().id)
+                else {
+                    val post = localPost.get()
+                    postService.update(
+                        post.id,
+                        post.title,
+                        post.body
+                    )
+                }
+            }
+
+            fun applyRemote() = coroutineScope.launch {
+                val localPostDao = LocalPostDatabase.getDatabase(ctx).localPostDao()
+                //TODO handle err
+                if (localPost.isEmpty) {
+                    val post = remotePost.get()
+                    localPostDao.insert(
+                        LocalPost(
+                            post.id,
+                            post.title,
+                            post.body,
+                            post.createTime,
+                            post.modifyTime
+                        )
+                    )
+                } else if (remotePost.isEmpty)
+                    localPostDao.delete(localPost.get().id)
+                else {
+                    val post = remotePost.get()
+                    postService.update(
+                        post.id,
+                        post.title,
+                        post.body
+                    )
+                }
+            }
+
+            Button(onClick = {
+                applyLocal()
+                afterApplyLocal()
+            }) {
                 val (text, icon) =
                     if (localPost.isEmpty)
                         Pair(
@@ -224,7 +279,10 @@ fun PostDiffCard(
             }
             Spacer(modifier = Modifier.width(10.dp))
             Button(
-                onClick = { /*TODO*/ }
+                onClick = {
+                    applyRemote()
+                    afterApplyRemote()
+                }
             ) {
                 val (text, icon) =
                     if (remotePost.isEmpty)
@@ -272,7 +330,18 @@ fun PostDiffCardPreview() {
     )
     Column {
         //PostDiffCard(Optional.of(localPost), Optional.of(remotePost))
-        PostDiffCard(Optional.of(localPost), Optional.empty())
-        PostDiffCard(Optional.empty(), Optional.of(remotePost))
+/*
+        PostDiffCard(
+            Optional.of(localPost), Optional.empty(),
+            afterApplyLocal = {},
+            afterApplyRemote = {}
+        )
+        PostDiffCard(
+            Optional.empty(),
+            Optional.of(remotePost),
+            afterApplyLocal = {},
+            afterApplyRemote = {}
+        )
+*/
     }
 }

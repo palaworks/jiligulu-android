@@ -29,8 +29,8 @@ interface LocalPostDao {
     @Update
     fun update(localPost: LocalPost)
 
-    @Delete
-    fun delete(localPost: LocalPost)
+    @Query("DELETE FROM local_post WHERE id = (:id)")
+    fun delete(id: i64)
 }
 
 @TypeConverters(DateConverter::class)

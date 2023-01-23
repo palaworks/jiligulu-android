@@ -10,6 +10,8 @@ import data.db.converter.DateConverter
 data class LocalComment(
     @PrimaryKey val id: i64,
     @ColumnInfo(name = "body") val body: String,
+    @ColumnInfo(name = "binding_id") val bindingId: i64,
+    @ColumnInfo(name = "is_reply") val isReply: Boolean,
     @ColumnInfo(name = "create_time") val createTime: Date,
 )
 
@@ -27,8 +29,8 @@ interface LocalCommentDao {
     @Update
     fun update(localComment: LocalComment)
 
-    @Delete
-    fun delete(localComment: LocalComment)
+    @Query("DELETE FROM local_comment WHERE id = (:id)")
+    fun delete(id: i64)
 }
 
 @TypeConverters(DateConverter::class)

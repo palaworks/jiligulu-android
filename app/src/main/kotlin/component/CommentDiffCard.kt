@@ -15,16 +15,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.style.TextOverflow
+import data.db.LocalComment
+import data.db.LocalCommentDatabase
+import data.grpc.CommentService
+import data.grpc.PostService
 import data.ui.sha256
+import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("SimpleDateFormat")
 @Composable
 fun CommentDiffCard(
     localComment: Optional<CommentData>,
-    remoteComment: Optional<CommentData>
+    remoteComment: Optional<CommentData>,
+    commentService: CommentService,
+    afterApplyLocal: () -> Unit,
+    afterApplyRemote: () -> Unit,
 ) {
     val fmt = SimpleDateFormat("yy-M-d h:mm")
     Column(
@@ -163,8 +173,54 @@ fun CommentDiffCard(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            val coroutineScope = rememberCoroutineScope()
+            val ctx = LocalContext.current
+
+            fun applyLocal() = coroutineScope.launch {
+                //TODO handle err
+                if (remoteComment.isEmpty) {
+                    val comment = localComment.get()
+                    commentService.create(comment.body, comment.bindingId, comment.isReply)
+                } else if (localComment.isEmpty)
+                    commentService.delete(remoteComment.get().id)
+                else {
+                    val comment = localComment.get()
+                    commentService.update(
+                        comment.id,
+                        comment.body
+                    )
+                }
+            }
+
+            fun applyRemote() = coroutineScope.launch {
+                val localCommentDao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+                //TODO handle err
+                if (localComment.isEmpty) {
+                    val comment = remoteComment.get()
+                    localCommentDao.insert(
+                        LocalComment(
+                            comment.id,
+                            comment.body,
+                            comment.bindingId,
+                            comment.isReply,
+                            comment.createTime,
+                        )
+                    )
+                } else if (remoteComment.isEmpty)
+                    localCommentDao.delete(localComment.get().id)
+                else {
+                    val comment = remoteComment.get()
+                    commentService.update(
+                        comment.id,
+                        comment.body
+                    )
+                }
+            }
             Button(
-                onClick = { /*TODO*/ }
+                onClick = {
+                    applyLocal()
+                    afterApplyLocal()
+                }
             ) {
                 val (text, icon) =
                     if (localComment.isEmpty)
@@ -186,7 +242,10 @@ fun CommentDiffCard(
             }
             Spacer(modifier = Modifier.width(10.dp))
             Button(
-                onClick = { /*TODO*/ }
+                onClick = {
+                    applyRemote()
+                    afterApplyRemote()
+                }
             ) {
                 val (text, icon) =
                     if (remoteComment.isEmpty)
@@ -219,6 +278,8 @@ fun CommentDiffCardPreview() {
         """Local Body
           |The quick brown fox jumps over the lazy dog.
         """.trimMargin(),
+        114514,
+        false,
         Date()
     )
     val remoteComment = CommentData(
@@ -226,11 +287,25 @@ fun CommentDiffCardPreview() {
         """Remote Body
           |The quick brown fox jumps over the lazy dog.
         """.trimMargin(),
+        114514,
+        true,
         Date()
     )
     Column {
         //CommentDiffCard(Optional.of(localComment), Optional.of(remoteComment))
-        CommentDiffCard(Optional.of(localComment), Optional.empty())
-        CommentDiffCard(Optional.empty(), Optional.of(remoteComment))
+/*
+        CommentDiffCard(
+            Optional.of(localComment),
+            Optional.empty(),
+            afterApplyLocal = {},
+            afterApplyRemote = {}
+        )
+        CommentDiffCard(
+            Optional.empty(),
+            Optional.of(remoteComment),
+            afterApplyLocal = {},
+            afterApplyRemote = {}
+        )
+*/
     }
 }
