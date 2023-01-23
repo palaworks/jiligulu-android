@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.ArrowDownward
+import data.ui.sha256
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("SimpleDateFormat")
@@ -68,13 +69,13 @@ fun PostDiffCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Sha256",
+                    text = "Local post sha256",
                     style = MaterialTheme.typography.labelLarge,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = localPost.map { it.body.sha256() }.orElse("-"),
+                    text = localPost.map { it.sha256() }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.outline
@@ -83,12 +84,12 @@ fun PostDiffCard(
             Spacer(modifier = Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Sha256",
+                    text = "remote post sha256",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = remotePost.map { it.body.sha256() }.orElse("-"),
+                    text = remotePost.map { it.sha256() }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
                 )
