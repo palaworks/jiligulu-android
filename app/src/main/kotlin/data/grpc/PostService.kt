@@ -1,6 +1,5 @@
 package data.grpc
 
-import data.ui.CommentData
 import java.util.*
 import data.ui.PostData
 import unilang.alias.i64
@@ -8,10 +7,11 @@ import io.grpc.ManagedChannel
 import grpc_code_gen.post.PostServiceGrpcKt
 import unilang.time.Iso8601
 import unilang.time.toDate
+import kotlin.collections.HashMap
 
 class PostService(
     channel: ManagedChannel,
-    private val getToken: () -> String
+    private val getToken: suspend () -> String
 ) {
     private val stub = PostServiceGrpcKt.PostServiceCoroutineStub(channel)
 
@@ -55,15 +55,17 @@ class PostService(
         }
     }
 
-    suspend fun getAllSha256(): List<Pair<i64, String>> {
+    suspend fun getAllSha256(): HashMap<i64, String> {
         val req = grpc_code_gen.post.get_all_sha256.req {
             this.token = getToken()
         }
 
         val rsp = stub.getAllSha256(req)
 
-        return rsp.collectionList.map {
-            Pair(it.id, it.sha256)
+        return HashMap<i64, String>().apply {
+            rsp.collectionList.forEach {
+                this[it.id] = it.sha256
+            }
         }
     }
 

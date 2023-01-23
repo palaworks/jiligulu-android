@@ -1,17 +1,17 @@
 package data.grpc
 
 import data.ui.CommentData
-import data.ui.PostData
 import grpc_code_gen.comment.CommentServiceGrpcKt
 import io.grpc.ManagedChannel
 import unilang.alias.i64
 import unilang.time.Iso8601
 import unilang.time.toDate
 import java.util.*
+import kotlin.collections.HashMap
 
 class CommentService(
     channel: ManagedChannel,
-    private val getToken: () -> String
+    private val getToken: suspend () -> String
 ) {
     private val stub = CommentServiceGrpcKt.CommentServiceCoroutineStub(channel)
 
@@ -51,15 +51,17 @@ class CommentService(
         }
     }
 
-    suspend fun getAllSha256(): List<Pair<i64, String>> {
+    suspend fun getAllSha256(): HashMap<i64, String> {
         val req = grpc_code_gen.comment.get_all_sha256.req {
             this.token = getToken()
         }
 
         val rsp = stub.getAllSha256(req)
 
-        return rsp.collectionList.map {
-            Pair(it.id, it.sha256)
+        return HashMap<i64, String>().apply {
+            rsp.collectionList.forEach {
+                this[it.id] = it.sha256
+            }
         }
     }
 
