@@ -23,15 +23,16 @@ import androidx.compose.material.icons.outlined.AddComment
 @SuppressLint("SimpleDateFormat")
 @Composable
 fun CommentCard(
-    navToDiff: Optional<(Long) -> Unit>,
-    navToEdit: (Long) -> Unit,
+    navToDiff: Optional<() -> Unit>,
+    navToEdit: () -> Unit,
+    navToCreateComment: () -> Unit,
     data: CommentData,
     fullBody: Boolean = false
 ) {
     val fmt = SimpleDateFormat("yy-M-d h:mm")
     Card(
         modifier = Modifier
-            .clickable { navToEdit(data.id) },
+            .clickable { navToEdit() },
         colors = CardDefaults.cardColors(
             MaterialTheme.colorScheme.surfaceVariant
         )
@@ -45,9 +46,9 @@ fun CommentCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                if (navToDiff.isPresent) {
+                if (navToDiff.isPresent)
                     IconButton(
-                        onClick = { navToDiff.get()(data.id) },
+                        onClick = { navToDiff.get()() },
                         modifier = Modifier
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.error)
@@ -58,9 +59,21 @@ fun CommentCard(
                             tint = MaterialTheme.colorScheme.onError
                         )
                     }
-                    Spacer(modifier = Modifier.width(16.dp))
-                }
+                else
+                    IconButton(
+                        onClick = { navToCreateComment() },
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Comment,
+                            contentDescription = "Create comment",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
 
+                Spacer(modifier = Modifier.width(16.dp))
                 Text(
                     text = data.body,
                     style = MaterialTheme.typography.titleMedium,
@@ -116,7 +129,7 @@ fun CommentCardPreview() {
     Column {
         CommentCard(
             Optional.of {},
-            {},
+            {}, {},
             CommentData(
                 12384,
                 "The quick brown fox jumps over the lazy dog",
@@ -127,7 +140,7 @@ fun CommentCardPreview() {
         )
         CommentCard(
             Optional.empty(),
-            {},
+            {}, {},
             CommentData(
                 12384,
                 "The quick brown fox jumps over the lazy dog",

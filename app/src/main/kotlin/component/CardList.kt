@@ -24,10 +24,10 @@ import androidx.compose.material.pullrefresh.rememberPullRefreshState
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun <T> CardList(
-    itemFetcher: () -> List<T>,
+    itemFetcher: suspend () -> List<T>,
     itemRender: @Composable (T) -> Unit,
 ) {
-    var itemList by remember { mutableStateOf(itemFetcher()) }
+    var itemList by remember { mutableStateOf(emptyList<T>()) }
 
     val refreshScope = rememberCoroutineScope()
     var refreshing by remember { mutableStateOf(false) }
@@ -38,6 +38,7 @@ fun <T> CardList(
         delay(500)
         refreshing = false
     }
+    refresh()
 
     val state = rememberPullRefreshState(refreshing, ::refresh)
 
@@ -67,16 +68,15 @@ fun <T> CardList(
 @Preview
 @Composable
 fun CardListPreview() {
+    val list = List(4) {
+        PostData(
+            12384, "Hola", "Just hello world!", Date(), Date()
+        )
+    }
     CardList(
-        itemFetcher = {
-            List(4) {
-                PostData(
-                    12384, "Hola", "Just hello world!", Date(), Date()
-                )
-            }
-        },
+        itemFetcher = { list },
         itemRender = @Composable {
-            PostCard({}, {}, it)
+            PostCard(Optional.of {}, {}, {}, it)
         }
     )
 }

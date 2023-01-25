@@ -22,15 +22,16 @@ import androidx.compose.foundation.shape.CircleShape
 @SuppressLint("SimpleDateFormat")
 @Composable
 fun PostCard(
-    navToDiff: Optional<(i64) -> Unit>,
-    navToEditor: (i64) -> Unit,
+    navToDiff: Optional<() -> Unit>,
+    navToEditor: () -> Unit,
+    navToCreateComment: () -> Unit,
     data: PostData,
     fullBody: Boolean = false
 ) {
     val fmt = SimpleDateFormat("yy-M-d h:mm")
     Card(
         modifier = Modifier
-            .clickable { navToEditor(data.id) },
+            .clickable { navToEditor() },
         colors = CardDefaults.cardColors(
             MaterialTheme.colorScheme.surfaceVariant
         )
@@ -47,9 +48,9 @@ fun PostCard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    if (navToDiff.isPresent) {
+                    if (navToDiff.isPresent)
                         IconButton(
-                            onClick = { navToDiff.get()(data.id) },
+                            onClick = { navToDiff.get()() },
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.error)
@@ -60,8 +61,21 @@ fun PostCard(
                                 tint = MaterialTheme.colorScheme.onError
                             )
                         }
-                        Spacer(modifier = Modifier.width(16.dp))
-                    }
+                    else
+                        IconButton(
+                            onClick = { navToCreateComment() },
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Comment,
+                                contentDescription = "Create comment",
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+
+                    Spacer(modifier = Modifier.width(16.dp))
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -137,8 +151,8 @@ fun PostCard(
 fun PostCardPreview() {
     Column {
         PostCard(
-            Optional.of { },
-            { },
+            Optional.of {},
+            {}, {},
             PostData(
                 12384,
                 "The quick brown fox jumps over the lazy dog",
@@ -149,7 +163,7 @@ fun PostCardPreview() {
         )
         PostCard(
             Optional.empty(),
-            { },
+            {}, {},
             PostData(
                 12384,
                 "The quick brown fox jumps over the lazy dog",

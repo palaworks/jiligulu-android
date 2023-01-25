@@ -20,33 +20,27 @@ import data.ui.CommentData
 import data.ui.sha256
 import kotlinx.coroutines.launch
 
-val commentDataList = List(8) {
-    CommentData(
-        12384,
-        "The quick brown fox jumps over the lazy dog",
-        114514,
-        true,
-        Date()
-    )
-}
-
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun CommentScreen(
     contentPadding: PaddingValues,
     navToCommentDiff: (i64) -> Unit,
     navToCommentEditor: (i64) -> Unit,
+    navToCreateComment: (i64) -> Unit,
     commentService: CommentService
 ) {
     val localCommentDao = LocalCommentDatabase.getDatabase(LocalContext.current).localCommentDao()
+
+    var fullCommentList by remember { mutableStateOf(listOf<CommentData>()) }
+    var conflictCommentList by remember { mutableStateOf(listOf<CommentData>()) }
 
     val load = suspend {
         val remoteIdSha256Map = commentService.getAllSha256()
         val localCommentList = localCommentDao.getAll()
 
-        val resolvedCommentList = mutableListOf<CommentData>()
+        val resolved = mutableListOf<CommentData>()
 
-        val conflictCommentList = localCommentList
+        val conflict = localCommentList
             .fold(mutableListOf<CommentData>()) { acc, localComment ->
                 acc.apply {
                     val localSha256 = CommentData(localComment).sha256()
@@ -56,7 +50,7 @@ fun CommentScreen(
                     else {
                         remoteIdSha256Map.remove(localComment.id)
                         if (remoteSha256 == localSha256)
-                            resolvedCommentList.add(CommentData(localComment))//resolved
+                            resolved.add(CommentData(localComment))//resolved
                         else
                             acc.add(CommentData(localComment))//conflict
                     }
@@ -65,16 +59,6 @@ fun CommentScreen(
             .map {
                 commentService.getOne(it).get()//add remote only comment
             }
-
-        Pair(conflictCommentList, resolvedCommentList)
-    }
-
-    var fullCommentList by remember { mutableStateOf(listOf<CommentData>()) }
-    var conflictCommentList by remember { mutableStateOf(listOf<CommentData>()) }
-
-    val coroutineScope = rememberCoroutineScope()
-    coroutineScope.launch {
-        val (conflict, resolved) = load()
 
         conflictCommentList = conflict
         fullCommentList = conflict + resolved
@@ -87,15 +71,20 @@ fun CommentScreen(
             .padding(horizontal = 10.dp)
     ) {
         CardList(
-            itemFetcher = { commentDataList },
-            itemRender = {
+            itemFetcher = {
+                load()
+                fullCommentList
+            },
+            itemRender = { data ->
+                val id = data.id
                 CommentCard(
-                    if (conflictCommentList.any { x -> x.id == it.id })
-                        Optional.of(navToCommentDiff)
+                    if (conflictCommentList.any { it.id == id })
+                        Optional.of { navToCommentDiff(id) }
                     else
                         Optional.empty(),
-                    navToCommentEditor,
-                    it
+                    { navToCommentEditor(id) },
+                    { navToCreateComment(id) },
+                    data
                 )
             }
         )

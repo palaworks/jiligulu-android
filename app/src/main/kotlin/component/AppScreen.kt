@@ -21,12 +21,16 @@ import androidx.compose.material.icons.filled.*
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
+import data.grpc.CommentService
+import data.grpc.PostService
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppScreen(
+    postService: PostService,
+    commentService: CommentService
 ) {
     val navController = rememberNavController()
     val state by navController.currentBackStackEntryAsState()
@@ -46,12 +50,6 @@ fun AppScreen(
                     AppRoute.POST_LIST -> {
                         CreateButton {
                             navController.navigate(AppRoute.CREATE_POST)
-                        }
-                        true
-                    }
-                    AppRoute.COMMENT_LIST -> {
-                        CreateButton {
-                            navController.navigate(AppRoute.CREATE_COMMENT)
                         }
                         true
                     }
@@ -78,13 +76,15 @@ fun AppScreen(
                 PostScreen(
                     contentPadding = contentPadding,
                     navToPostDiff = { id: i64 ->
-                        navController
-                            .navigate("${AppRoute.POST_DIFF}/$id")
+                        navController.navigate("${AppRoute.POST_DIFF}/$id")
                     },
                     navToPostEditor = { id: i64 ->
-                        navController
-                            .navigate("${AppRoute.MODIFY_POST}/$id")
-                    }
+                        navController.navigate("${AppRoute.MODIFY_POST}/$id")
+                    },
+                    navToCreateComment = { id: i64 ->
+                        navController.navigate("${AppRoute.CREATE_COMMENT}/$id")
+                    },
+                    postService
                 )
             }
             composable(
@@ -94,7 +94,11 @@ fun AppScreen(
                 title = "Post conflict"
 
                 val id = getIdNavArg(entry)
-                PostDiffScreen(contentPadding = contentPadding, id = id)
+                PostDiffScreen(
+                    contentPadding = contentPadding,
+                    postService = postService,
+                    id = id
+                )
             }
             composable(AppRoute.CREATE_POST) {
                 title = "Create post"
@@ -117,13 +121,15 @@ fun AppScreen(
                 CommentScreen(
                     contentPadding = contentPadding,
                     navToCommentDiff = { id: i64 ->
-                        navController
-                            .navigate("${AppRoute.COMMENT_DIFF}/$id")
+                        navController.navigate("${AppRoute.COMMENT_DIFF}/$id")
                     },
                     navToCommentEditor = { id: i64 ->
-                        navController
-                            .navigate("${AppRoute.MODIFY_COMMENT}/$id")
-                    }
+                        navController.navigate("${AppRoute.MODIFY_COMMENT}/$id")
+                    },
+                    navToCreateComment = { id: i64 ->
+                        navController.navigate("${AppRoute.CREATE_COMMENT}/$id")
+                    },
+                    commentService
                 )
             }
             composable(
@@ -133,7 +139,11 @@ fun AppScreen(
                 title = "Comment conflict"
 
                 val id = getIdNavArg(entry)
-                CommentDiffScreen(contentPadding = contentPadding, id = id)
+                CommentDiffScreen(
+                    contentPadding = contentPadding,
+                    commentService = commentService,
+                    id = id
+                )
             }
             composable(AppRoute.CREATE_COMMENT) {
                 title = "Create comment"

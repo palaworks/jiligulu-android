@@ -28,17 +28,21 @@ fun PostScreen(
     contentPadding: PaddingValues,
     navToPostDiff: (i64) -> Unit,
     navToPostEditor: (i64) -> Unit,
+    navToCreateComment: (i64) -> Unit,
     postService: PostService,
 ) {
     val localPostDao = LocalPostDatabase.getDatabase(LocalContext.current).localPostDao()
+
+    var fullPostList by remember { mutableStateOf(listOf<PostData>()) }
+    var conflictPostList by remember { mutableStateOf(listOf<PostData>()) }
 
     val load = suspend {
         val remoteIdSha256Map = postService.getAllSha256()
         val localPostList = localPostDao.getAll()
 
-        val resolvedPostList = mutableListOf<PostData>()
+        val resolved = mutableListOf<PostData>()
 
-        val conflictPostList = localPostList
+        val conflict = localPostList
             .fold(mutableListOf<PostData>()) { acc, localPost ->
                 acc.apply {
                     val localSha256 = PostData(localPost).sha256()
@@ -48,7 +52,7 @@ fun PostScreen(
                     else {
                         remoteIdSha256Map.remove(localPost.id)
                         if (remoteSha256 == localSha256)
-                            resolvedPostList.add(PostData(localPost))//resolved
+                            resolved.add(PostData(localPost))//resolved
                         else
                             acc.add(PostData(localPost))//conflict
                     }
@@ -57,16 +61,6 @@ fun PostScreen(
             .map {
                 postService.getOne(it).get()//add remote only post
             }
-
-        Pair(conflictPostList, resolvedPostList)
-    }
-
-    var fullPostList by remember { mutableStateOf(listOf<PostData>()) }
-    var conflictPostList by remember { mutableStateOf(listOf<PostData>()) }
-
-    val coroutineScope = rememberCoroutineScope()
-    coroutineScope.launch {
-        val (conflict, resolved) = load()
 
         conflictPostList = conflict
         fullPostList = conflict + resolved
@@ -79,15 +73,20 @@ fun PostScreen(
             .padding(horizontal = 10.dp)
     ) {
         CardList(
-            itemFetcher = { fullPostList },
-            itemRender = {
+            itemFetcher = {
+                load()
+                fullPostList
+            },
+            itemRender = { data ->
+                val id = data.id
                 PostCard(
-                    if (conflictPostList.any { x -> x.id == it.id })
-                        Optional.of(navToPostDiff)
+                    if (conflictPostList.any { it.id == id })
+                        Optional.of { navToPostDiff(id) }
                     else
                         Optional.empty(),
-                    navToPostEditor,
-                    it,
+                    { navToPostEditor(id) },
+                    { navToCreateComment(id) },
+                    data,
                 )
             }
         )
