@@ -1,5 +1,8 @@
 package data.grpc
 
+import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import java.util.*
 import data.ui.PostData
 import unilang.alias.i64
@@ -125,5 +128,22 @@ class PostService(
             )
         else
             Optional.empty()
+    }
+}
+
+object PostServiceSingleton {
+    private var postService: Optional<PostService> = Optional.empty()
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    suspend fun getService(ctx: Context): Optional<PostService> {
+        if (postService.isEmpty)
+            runCatching {
+                val channel = ChannelSingleton.getChannel(ctx).get()
+                val getToken = suspend { TokenServiceSingleton.getOne(ctx).get() }
+
+                postService = Optional.of(PostService(channel, getToken))
+            }
+
+        return postService
     }
 }

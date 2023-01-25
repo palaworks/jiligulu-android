@@ -1,5 +1,8 @@
 package data.grpc
 
+import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import data.ui.CommentData
 import grpc_code_gen.comment.CommentServiceGrpcKt
 import io.grpc.ManagedChannel
@@ -125,5 +128,22 @@ class CommentService(
             )
         else
             Optional.empty()
+    }
+}
+
+object CommentServiceSingleton {
+    private var commentService: Optional<CommentService> = Optional.empty()
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    suspend fun getService(ctx: Context): Optional<CommentService> {
+        if (commentService.isEmpty)
+            runCatching {
+                val channel = ChannelSingleton.getChannel(ctx).get()
+                val getToken = suspend { TokenServiceSingleton.getOne(ctx).get() }
+
+                commentService = Optional.of(CommentService(channel, getToken))
+            }
+
+        return commentService
     }
 }
