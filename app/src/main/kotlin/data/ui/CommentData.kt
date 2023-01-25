@@ -1,23 +1,25 @@
 package data.ui
 
-import data.db.LocalPost
+import data.db.LocalComment
 import java.util.*
 import unilang.alias.*
 import unilang.hash.sha256
-import unilang.time.Iso8601
-import unilang.time.toDate
 
 data class CommentData(
     val id: i64,
     val body: String,
+    val bindingId: i64,
+    val isReply: Boolean,
     val createTime: Date
 )
 
-fun CommentData(localPost: LocalPost) =
+fun CommentData(localComment: LocalComment) =
     CommentData(
-        localPost.id,
-        localPost.body,
-        localPost.createTime
+        localComment.id,
+        localComment.body,
+        localComment.bindingId,
+        localComment.isReply,
+        localComment.createTime
     )
 
 fun CommentData.sha256() = this.body.sha256()
