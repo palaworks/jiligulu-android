@@ -1,12 +1,13 @@
 package data.db.converter
 
 import androidx.room.TypeConverter
+import unilang.alias.i64
 import java.util.Date
 
 class DateConverter {
     @TypeConverter
-    fun toDate(dateLong: Long?) = if (dateLong == null) null else Date(dateLong)
+    fun from(i64: i64?): Date? = if (i64 == null) null else Date(i64)
 
     @TypeConverter
-    fun fromDate(date: Date?) = date?.time
+    fun into(date: Date?): i64? = date?.time
 }
