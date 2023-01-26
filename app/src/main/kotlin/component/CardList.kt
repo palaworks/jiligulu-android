@@ -16,9 +16,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.ui.text.style.TextAlign
 
 @OptIn(ExperimentalMaterialApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -38,7 +40,6 @@ fun <T> CardList(
         delay(500)
         refreshing = false
     }
-    refresh()
 
     val state = rememberPullRefreshState(refreshing, ::refresh)
 
@@ -47,13 +48,15 @@ fun <T> CardList(
             .fillMaxSize()
             .pullRefresh(state)
     ) {
-        Column(
-            modifier = Modifier.verticalScroll(rememberScrollState())
-        ) {
-            Spacer(modifier = Modifier.height(10.dp))
-            itemList.forEach {
-                itemRender(it)
+        if (itemList.isEmpty())
+            TryPullDownInfo()
+        else {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 Spacer(modifier = Modifier.height(10.dp))
+                itemList.forEach {
+                    itemRender(it)
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
             }
         }
 
