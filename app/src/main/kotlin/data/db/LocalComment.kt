@@ -13,6 +13,7 @@ data class LocalComment(
     @ColumnInfo(name = "binding_id") val bindingId: i64,
     @ColumnInfo(name = "is_reply") val isReply: Boolean,
     @ColumnInfo(name = "create_time") val createTime: Date,
+    @ColumnInfo(name = "modify_time") val modifyTime: Date,
 )
 
 @Dao

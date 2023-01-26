@@ -33,6 +33,7 @@ class CommentService(
                     bindingId = rsp.data.bindingId,
                     isReply = rsp.data.isReply,
                     createTime = Iso8601(rsp.data.createTime).toDate(),
+                    modifyTime = Iso8601(rsp.data.modifyTime).toDate(),
                 )
             )
         } else Optional.empty()
@@ -52,7 +53,8 @@ class CommentService(
                 it.body,
                 it.bindingId,
                 it.isReply,
-                Iso8601(it.createTime).toDate()
+                Iso8601(it.createTime).toDate(),
+                Iso8601(it.modifyTime).toDate()
             )
         }
     }
@@ -88,7 +90,8 @@ class CommentService(
                     rsp.data.body,
                     rsp.data.bindingId,
                     rsp.data.isReply,
-                    Iso8601(rsp.data.createTime).toDate()
+                    Iso8601(rsp.data.createTime).toDate(),
+                    Iso8601(rsp.data.modifyTime).toDate()
                 )
             )
         else
@@ -122,7 +125,8 @@ class CommentService(
                     rsp.data.body,
                     rsp.data.bindingId,
                     rsp.data.isReply,
-                    Iso8601(rsp.data.createTime).toDate()
+                    Iso8601(rsp.data.createTime).toDate(),
+                    Iso8601(rsp.data.modifyTime).toDate()
                 )
             )
         else

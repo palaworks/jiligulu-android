@@ -10,7 +10,8 @@ data class CommentData(
     val body: String,
     val bindingId: i64,
     val isReply: Boolean,
-    val createTime: Date
+    val createTime: Date,
+    val modifyTime: Date
 )
 
 fun CommentData(localComment: LocalComment) =
@@ -19,7 +20,8 @@ fun CommentData(localComment: LocalComment) =
         localComment.body,
         localComment.bindingId,
         localComment.isReply,
-        localComment.createTime
+        localComment.createTime,
+        localComment.modifyTime
     )
 
 fun CommentData.sha256() = this.body.sha256()

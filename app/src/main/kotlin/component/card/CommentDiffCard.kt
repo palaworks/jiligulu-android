@@ -205,6 +205,7 @@ fun CommentDiffCard(
                             comment.bindingId,
                             comment.isReply,
                             comment.createTime,
+                            comment.modifyTime,
                         )
                     )
                 } else if (remoteComment.isEmpty)
@@ -284,7 +285,8 @@ fun CommentDiffCardPreview() {
         """.trimMargin(),
         114514,
         false,
-        Date()
+        Date(),
+        Date(),
     )
     val remoteComment = CommentData(
         24051968,
@@ -293,6 +295,7 @@ fun CommentDiffCardPreview() {
         """.trimMargin(),
         114514,
         true,
+        Date(),
         Date()
     )
     Column {
