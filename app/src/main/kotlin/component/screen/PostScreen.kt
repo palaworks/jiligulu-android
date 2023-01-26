@@ -1,11 +1,13 @@
 package component.screen
 
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import java.util.*
 import data.ui.PostData
 import unilang.alias.i64
 import component.CardList
-import component.PostCard
+import component.card.PostCard
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.Column
@@ -15,28 +17,34 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
+import component.card.PostDiffCard
+import component.dialog.PostDiffDialog
 import data.db.LocalPostDatabase
+import data.grpc.CommentServiceSingleton
 import data.grpc.PostService
+import data.grpc.PostServiceSingleton
 import data.ui.sha256
 import kotlinx.coroutines.launch
 import unilang.type.notNullThen
 import unilang.type.nullThen
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun PostScreen(
     contentPadding: PaddingValues,
-    navToPostDiff: (i64) -> Unit,
     navToPostEditor: (i64) -> Unit,
     navToCreateComment: (i64) -> Unit,
-    postService: PostService,
 ) {
     val localPostDao = LocalPostDatabase.getDatabase(LocalContext.current).localPostDao()
 
     var fullPostList by remember { mutableStateOf(listOf<PostData>()) }
     var conflictPostList by remember { mutableStateOf(listOf<PostData>()) }
 
+    val ctx = LocalContext.current
     val load = suspend {
+        val postService = PostServiceSingleton.getService(ctx).get()
+
         val remoteIdSha256Map = postService.getAllSha256()
         val localPostList = localPostDao.getAll()
 
@@ -80,13 +88,12 @@ fun PostScreen(
             itemRender = { data ->
                 val id = data.id
                 PostCard(
-                    if (conflictPostList.any { it.id == id })
-                        Optional.of { navToPostDiff(id) }
-                    else
-                        Optional.empty(),
                     { navToPostEditor(id) },
                     { navToCreateComment(id) },
                     data,
+                    conflictPostList.any { it.id == id },
+                    {},
+                    {},
                 )
             }
         )

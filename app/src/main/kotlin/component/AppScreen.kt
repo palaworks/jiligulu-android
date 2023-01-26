@@ -28,10 +28,7 @@ import data.grpc.PostService
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppScreen(
-    postService: PostService,
-    commentService: CommentService
-) {
+fun AppScreen() {
     val navController = rememberNavController()
     val state by navController.currentBackStackEntryAsState()
 
@@ -68,36 +65,20 @@ fun AppScreen(
     ) { contentPadding ->
         NavHost(
             navController = navController,
-            startDestination = AppRoute.POST_LIST
+            //startDestination = AppRoute.POST_LIST,
+            startDestination = AppRoute.SETTINGS
         ) {
             composable(AppRoute.POST_LIST) {
                 title = "Posts"
 
                 PostScreen(
                     contentPadding = contentPadding,
-                    navToPostDiff = { id: i64 ->
-                        navController.navigate("${AppRoute.POST_DIFF}/$id")
-                    },
                     navToPostEditor = { id: i64 ->
                         navController.navigate("${AppRoute.MODIFY_POST}/$id")
                     },
                     navToCreateComment = { id: i64 ->
                         navController.navigate("${AppRoute.CREATE_COMMENT}/$id")
-                    },
-                    postService
-                )
-            }
-            composable(
-                "${AppRoute.POST_DIFF}/{id}",
-                arguments = listOf(idNavArg)
-            ) { entry ->
-                title = "Post conflict"
-
-                val id = getIdNavArg(entry)
-                PostDiffScreen(
-                    contentPadding = contentPadding,
-                    postService = postService,
-                    id = id
+                    }
                 )
             }
             composable(AppRoute.CREATE_POST) {
@@ -120,29 +101,12 @@ fun AppScreen(
 
                 CommentScreen(
                     contentPadding = contentPadding,
-                    navToCommentDiff = { id: i64 ->
-                        navController.navigate("${AppRoute.COMMENT_DIFF}/$id")
-                    },
                     navToCommentEditor = { id: i64 ->
                         navController.navigate("${AppRoute.MODIFY_COMMENT}/$id")
                     },
                     navToCreateComment = { id: i64 ->
                         navController.navigate("${AppRoute.CREATE_COMMENT}/$id")
-                    },
-                    commentService
-                )
-            }
-            composable(
-                "${AppRoute.COMMENT_DIFF}/{id}",
-                arguments = listOf(idNavArg)
-            ) { entry ->
-                title = "Comment conflict"
-
-                val id = getIdNavArg(entry)
-                CommentDiffScreen(
-                    contentPadding = contentPadding,
-                    commentService = commentService,
-                    id = id
+                    }
                 )
             }
             composable(AppRoute.CREATE_COMMENT) {

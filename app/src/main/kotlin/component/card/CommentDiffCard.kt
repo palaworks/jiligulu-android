@@ -1,56 +1,57 @@
-package component
+package component.card
 
 import java.util.*
-import data.ui.sha256
-import data.ui.PostData
 import android.os.Build
+import data.ui.CommentData
+import unilang.hash.sha256
 import java.text.SimpleDateFormat
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
-import androidx.annotation.RequiresApi
 import android.annotation.SuppressLint
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.DownloadForOffline
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.focus.focusModifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Numbers
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalContext
-import data.db.LocalPost
-import data.db.LocalPostDatabase
+import androidx.compose.ui.unit.sp
+import data.db.LocalComment
+import data.db.LocalCommentDatabase
+import data.grpc.CommentService
+import data.grpc.CommentServiceSingleton
 import data.grpc.PostService
+import data.ui.sha256
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-@SuppressLint("SimpleDateFormat", "CoroutineCreationDuringComposition")
+@SuppressLint("SimpleDateFormat")
 @Composable
-fun PostDiffCard(
-    localPost: Optional<PostData>,
-    remotePost: Optional<PostData>,
-    postService: PostService,
+fun CommentDiffCard(
+    localComment: Optional<CommentData>,
+    remoteComment: Optional<CommentData>,
     afterApplyLocal: () -> Unit,
     afterApplyRemote: () -> Unit,
 ) {
     val fmt = SimpleDateFormat("yy-M-d h:mm")
     Column(
-        Modifier
-            .fillMaxWidth()
-            .padding(10.dp)
+        Modifier.fillMaxWidth()
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Default.Numbers,
-                contentDescription = "Comment id",
+                contentDescription = "Comment id"
             )
             Text(
-                text = localPost
-                    .or { remotePost }
+                text = localComment
+                    .or { remoteComment }
                     .map { it.id }
                     .orElseThrow()
                     .toString(),
@@ -77,13 +78,13 @@ fun PostDiffCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Local post sha256",
+                    text = "Sha256",
                     style = MaterialTheme.typography.labelLarge,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = localPost.map { it.sha256() }.orElse("-"),
+                    text = localComment.map { it.sha256() }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.outline
@@ -92,49 +93,14 @@ fun PostDiffCard(
             Spacer(modifier = Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "remote post sha256",
+                    text = "Sha256",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = remotePost.map { it.sha256() }.orElse("-"),
+                    text = remoteComment.map { it.sha256() }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(10.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Title",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-                Text(
-                    text = localPost.map { it.title }.orElse("-"),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.outline,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            Spacer(modifier = Modifier.width(10.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Title",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-                Text(
-                    text = remotePost.map { it.title }.orElse("-"),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.outline,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -150,7 +116,7 @@ fun PostDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = localPost.map { it.body }.orElse("-"),
+                    text = localComment.map { it.body }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline,
                     maxLines = 3,
@@ -165,7 +131,7 @@ fun PostDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = remotePost.map { it.body }.orElse("-"),
+                    text = remoteComment.map { it.body }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline,
                     maxLines = 3,
@@ -185,7 +151,7 @@ fun PostDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = localPost.map { fmt.format(it.createTime) }.orElse("-"),
+                    text = localComment.map { fmt.format(it.createTime) }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
                 )
@@ -198,7 +164,7 @@ fun PostDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = remotePost.map { fmt.format(it.createTime) }.orElse("-"),
+                    text = remoteComment.map { fmt.format(it.createTime) }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
                 )
@@ -213,91 +179,95 @@ fun PostDiffCard(
             val ctx = LocalContext.current
 
             fun applyLocal() = coroutineScope.launch {
+                val commentService = CommentServiceSingleton.getService(ctx).get()
                 //TODO handle err
-                if (remotePost.isEmpty) {
-                    val post = localPost.get()
-                    postService.create(post.title, post.body)
-                } else if (localPost.isEmpty)
-                    postService.delete(remotePost.get().id)
+                if (remoteComment.isEmpty) {
+                    val comment = localComment.get()
+                    commentService.create(comment.body, comment.bindingId, comment.isReply)
+                } else if (localComment.isEmpty)
+                    commentService.delete(remoteComment.get().id)
                 else {
-                    val post = localPost.get()
-                    postService.update(
-                        post.id,
-                        post.title,
-                        post.body
+                    val comment = localComment.get()
+                    commentService.update(
+                        comment.id,
+                        comment.body
                     )
                 }
             }
 
             fun applyRemote() = coroutineScope.launch {
-                val localPostDao = LocalPostDatabase.getDatabase(ctx).localPostDao()
+                val localCommentDao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+                val commentService = CommentServiceSingleton.getService(ctx).get()
                 //TODO handle err
-                if (localPost.isEmpty) {
-                    val post = remotePost.get()
-                    localPostDao.insert(
-                        LocalPost(
-                            post.id,
-                            post.title,
-                            post.body,
-                            post.createTime,
-                            post.modifyTime
+                if (localComment.isEmpty) {
+                    val comment = remoteComment.get()
+                    localCommentDao.insert(
+                        LocalComment(
+                            comment.id,
+                            comment.body,
+                            comment.bindingId,
+                            comment.isReply,
+                            comment.createTime,
                         )
                     )
-                } else if (remotePost.isEmpty)
-                    localPostDao.delete(localPost.get().id)
+                } else if (remoteComment.isEmpty)
+                    localCommentDao.delete(localComment.get().id)
                 else {
-                    val post = remotePost.get()
-                    postService.update(
-                        post.id,
-                        post.title,
-                        post.body
+                    val comment = remoteComment.get()
+                    commentService.update(
+                        comment.id,
+                        comment.body
                     )
                 }
             }
-
-            Button(onClick = {
-                applyLocal()
-                afterApplyLocal()
-            }) {
+            Button(
+                onClick = {
+                    applyLocal()
+                    afterApplyLocal()
+                },
+                contentPadding = PaddingValues(horizontal = 10.dp)
+            ) {
                 val (text, icon) =
-                    if (localPost.isEmpty)
+                    if (localComment.isEmpty)
                         Pair(
                             "Delete Remote",
-                            Icons.Default.Delete
+                            Icons.Rounded.Delete
                         )
                     else
                         Pair(
                             "Push Local",
-                            Icons.Default.ArrowUpward
+                            Icons.Rounded.DownloadForOffline
                         )
                 Icon(
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(16.dp),
                     imageVector = icon,
                     contentDescription = text
                 )
-                Text(text = text)
+                Text(text = text, fontSize = 12.sp)
             }
-            Spacer(modifier = Modifier.width(10.dp))
+
             Button(
                 onClick = {
                     applyRemote()
                     afterApplyRemote()
-                }
+                },
+                contentPadding = PaddingValues(horizontal = 10.dp)
             ) {
                 val (text, icon) =
-                    if (remotePost.isEmpty)
+                    if (remoteComment.isEmpty)
                         Pair(
                             "Delete Local",
-                            Icons.Default.Delete
+                            Icons.Rounded.Delete
                         )
                     else
                         Pair(
                             "Fetch Remote",
-                            Icons.Default.ArrowDownward
+                            Icons.Rounded.DownloadForOffline
                         )
-                Text(text = text)
+                Text(text = text, fontSize = 12.sp)
+                Spacer(modifier = Modifier.width(2.dp))
                 Icon(
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(16.dp),
                     imageVector = icon,
                     contentDescription = text
                 )
@@ -309,39 +279,38 @@ fun PostDiffCard(
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Preview
 @Composable
-fun PostDiffCardPreview() {
-    val localPost = PostData(
-        12384,
-        "Hello world!",
+fun CommentDiffCardPreview() {
+    val localComment = CommentData(
+        24051968,
         """Local Body
           |The quick brown fox jumps over the lazy dog.
         """.trimMargin(),
-        Date(),
-        Date(),
+        114514,
+        false,
+        Date()
     )
-    val remotePost = PostData(
-        12384,
-        "Hello world!",
+    val remoteComment = CommentData(
+        24051968,
         """Remote Body
           |The quick brown fox jumps over the lazy dog.
         """.trimMargin(),
-        Date(),
-        Date(),
+        114514,
+        true,
+        Date()
     )
     Column {
-        //PostDiffCard(Optional.of(localPost), Optional.of(remotePost))
-/*
-        PostDiffCard(
-            Optional.of(localPost), Optional.empty(),
-            afterApplyLocal = {},
-            afterApplyRemote = {}
-        )
-        PostDiffCard(
+        //CommentDiffCard(Optional.of(localComment), Optional.of(remoteComment))
+        CommentDiffCard(
+            Optional.of(localComment),
             Optional.empty(),
-            Optional.of(remotePost),
             afterApplyLocal = {},
             afterApplyRemote = {}
         )
-*/
+        CommentDiffCard(
+            Optional.empty(),
+            Optional.of(remoteComment),
+            afterApplyLocal = {},
+            afterApplyRemote = {}
+        )
     }
 }

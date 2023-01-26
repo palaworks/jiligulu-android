@@ -1,4 +1,4 @@
-package component
+package component.card
 
 import java.util.*
 import unilang.alias.*
@@ -9,7 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.material3.*
 import androidx.compose.ui.draw.clip
 import android.annotation.SuppressLint
-import androidx.compose.runtime.Composable
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
@@ -18,17 +19,31 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.*
+import component.dialog.PostDiffDialog
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("SimpleDateFormat")
 @Composable
 fun PostCard(
-    navToDiff: Optional<() -> Unit>,
     navToEditor: () -> Unit,
     navToCreateComment: () -> Unit,
     data: PostData,
-    fullBody: Boolean = false
+    existDiff: Boolean,
+    afterApplyLocal: () -> Unit,
+    afterApplyRemote: () -> Unit,
 ) {
     val fmt = SimpleDateFormat("yy-M-d h:mm")
+    var showDiffDialog by remember { mutableStateOf(false) }
+
+    if (showDiffDialog)
+        PostDiffDialog(
+            data.id,
+            { showDiffDialog = false },
+            afterApplyLocal,
+            afterApplyRemote
+        )
+
     Card(
         modifier = Modifier
             .clickable { navToEditor() },
@@ -48,9 +63,9 @@ fun PostCard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    if (navToDiff.isPresent)
+                    if (existDiff) {
                         IconButton(
-                            onClick = { navToDiff.get()() },
+                            onClick = { showDiffDialog = true },
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.error)
@@ -61,7 +76,7 @@ fun PostCard(
                                 tint = MaterialTheme.colorScheme.onError
                             )
                         }
-                    else
+                    } else
                         IconButton(
                             onClick = { navToCreateComment() },
                             modifier = Modifier
@@ -106,7 +121,7 @@ fun PostCard(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 10.dp),
-                    maxLines = if (fullBody) i32.MAX_VALUE else 2,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
@@ -146,12 +161,12 @@ fun PostCard(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Preview
 @Composable
 fun PostCardPreview() {
     Column {
         PostCard(
-            Optional.of {},
             {}, {},
             PostData(
                 12384,
@@ -159,10 +174,11 @@ fun PostCardPreview() {
                 "The quick brown fox jumps over the lazy dog",
                 Date(),
                 Date()
-            )
+            ),
+            true,
+            {}, {},
         )
         PostCard(
-            Optional.empty(),
             {}, {},
             PostData(
                 12384,
@@ -170,7 +186,9 @@ fun PostCardPreview() {
                 "The quick brown fox jumps over the lazy dog",
                 Date(),
                 Date()
-            )
+            ),
+            false,
+            {}, {},
         )
     }
 }

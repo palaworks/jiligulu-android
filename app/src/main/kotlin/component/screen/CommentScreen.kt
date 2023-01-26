@@ -1,10 +1,12 @@
 package component.screen
 
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import java.util.*
 import unilang.alias.i64
 import component.CardList
-import component.CommentCard
+import component.card.CommentCard
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.Column
@@ -14,27 +16,31 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
+import component.dialog.CommentDiffDialog
 import data.db.LocalCommentDatabase
 import data.grpc.CommentService
+import data.grpc.CommentServiceSingleton
 import data.ui.CommentData
 import data.ui.sha256
 import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun CommentScreen(
     contentPadding: PaddingValues,
-    navToCommentDiff: (i64) -> Unit,
     navToCommentEditor: (i64) -> Unit,
     navToCreateComment: (i64) -> Unit,
-    commentService: CommentService
 ) {
     val localCommentDao = LocalCommentDatabase.getDatabase(LocalContext.current).localCommentDao()
 
     var fullCommentList by remember { mutableStateOf(listOf<CommentData>()) }
     var conflictCommentList by remember { mutableStateOf(listOf<CommentData>()) }
 
+    val ctx = LocalContext.current
     val load = suspend {
+        val commentService = CommentServiceSingleton.getService(ctx).get()
+
         val remoteIdSha256Map = commentService.getAllSha256()
         val localCommentList = localCommentDao.getAll()
 
@@ -78,13 +84,12 @@ fun CommentScreen(
             itemRender = { data ->
                 val id = data.id
                 CommentCard(
-                    if (conflictCommentList.any { it.id == id })
-                        Optional.of { navToCommentDiff(id) }
-                    else
-                        Optional.empty(),
                     { navToCommentEditor(id) },
                     { navToCreateComment(id) },
-                    data
+                    data,
+                    conflictCommentList.any { it.id == id },
+                    {},
+                    {},
                 )
             }
         )
