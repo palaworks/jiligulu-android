@@ -1,26 +1,32 @@
 package component
 
-import data.db.AppSettingDatabase
-import androidx.compose.runtime.*
-import androidx.compose.ui.unit.dp
-import androidx.compose.material3.*
-import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.*
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import data.db.AppSettingDatabase
+import ui.FillMaxWidthModifier
+import ui.rememberMutStateOf
+import unilang.type.map
+import unilang.type.or
 
 @Composable
 fun Settings(
     contentPadding: PaddingValues
 ) {
     val appSettingDao = AppSettingDatabase.getDatabase(LocalContext.current).appSettingDao()
-    var appSetting by remember { mutableStateOf(appSettingDao.get()) }
+    var appSetting by rememberMutStateOf(appSettingDao.get())
 
     Column(
-        modifier = Modifier
+        modifier = FillMaxWidthModifier
             .padding(contentPadding)
-            .fillMaxWidth()
     ) {
         Text(
             style = MaterialTheme.typography.bodyMedium,
@@ -33,7 +39,7 @@ fun Settings(
             "Host",
             "E.g., https://for.example.domain",
             false,
-            appSetting.grpcHost.toString(),
+            appSetting.grpcHost.or(""),
         ) {
             appSettingDao.update(appSetting.copy(grpcHost = it))
             appSetting = appSettingDao.get()
@@ -43,9 +49,9 @@ fun Settings(
             "Port",
             "E.g., 40040",
             false,
-            appSetting.grpcPort.toString()
+            appSetting.grpcPort.map { it.toString() }.or("")
         ) {
-            appSettingDao.update(appSetting.copy(grpcPort = it))
+            appSettingDao.update(appSetting.copy(grpcPort = it.toInt()))
             appSetting = appSettingDao.get()
         }
 
@@ -62,9 +68,9 @@ fun Settings(
             "User id",
             "E.g., 1001",
             false,
-            appSetting.pilipalaUid.toString()
+            appSetting.pilipalaUid.map { it.toString() }.or("")
         ) {
-            appSettingDao.update(appSetting.copy(pilipalaUid = it))
+            appSettingDao.update(appSetting.copy(pilipalaUid = it.toLong()))
             appSetting = appSettingDao.get()
         }
         Spacer(modifier = Modifier.height(20.dp))
@@ -72,7 +78,7 @@ fun Settings(
             "Password",
             "E.g., 114514",
             true,
-            appSetting.pilipalaPwd.toString()
+            appSetting.pilipalaPwd.or("")
         ) {
             appSettingDao.update(appSetting.copy(pilipalaPwd = it))
             appSetting = appSettingDao.get()

@@ -1,15 +1,16 @@
 package data.db
 
+import android.content.Context
 import androidx.room.*
 import unilang.alias.i32
-import android.content.Context
+import unilang.alias.i64
 
 @Entity(tableName = "app_setting")
 data class AppSetting(
     @PrimaryKey val setting_id: i32,
     @ColumnInfo(name = "grpc_host") val grpcHost: String?,
-    @ColumnInfo(name = "grpc_port") val grpcPort: String?,
-    @ColumnInfo(name = "pilipala_uid") val pilipalaUid: String?,
+    @ColumnInfo(name = "grpc_port") val grpcPort: i32?,
+    @ColumnInfo(name = "pilipala_uid") val pilipalaUid: i64?,
     @ColumnInfo(name = "pilipala_pws") val pilipalaPwd: String?,
 )
 
@@ -28,12 +29,14 @@ interface AppSettingDao {
     fun update(appSetting: AppSetting)
 }
 
+//@TypeConverters(U16Converter::class)
 @Database(entities = [AppSetting::class], version = 1)
 abstract class AppSettingDatabase : RoomDatabase() {
     abstract fun appSettingDao(): AppSettingDao
 
     companion object {
         private var INSTANCE: AppSettingDatabase? = null
+
         fun getDatabase(ctx: Context): AppSettingDatabase {
             if (INSTANCE == null) {
                 synchronized(this) {
