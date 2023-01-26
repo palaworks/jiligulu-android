@@ -13,11 +13,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import component.dialog.PostDiffDialog
+import data.db.LocalCommentDatabase
+import data.db.LocalPostDatabase
 import data.ui.PostData
+import kotlinx.coroutines.launch
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
 import unilang.alias.*
@@ -28,7 +32,7 @@ import java.util.*
 @SuppressLint("SimpleDateFormat")
 @Composable
 fun PostCard(
-    navToEditor: () -> Unit,
+    navToEdit: () -> Unit,
     navToCreateComment: () -> Unit,
     data: PostData,
     existDiff: Boolean,
@@ -46,9 +50,16 @@ fun PostCard(
             afterApplyRemote
         )
 
+    val ctx = LocalContext.current
+    fun ifExistLocalThenEdit() {
+        val localPostDao = LocalPostDatabase.getDatabase(ctx).localPostDao()
+        if (localPostDao.maybe(data.id) != null)
+            navToEdit()
+    }
+
     Card(
         modifier = Modifier
-            .clickable { navToEditor() },
+            .clickable { ifExistLocalThenEdit() },
         colors = CardDefaults.cardColors(
             MaterialTheme.colorScheme.surfaceVariant
         )

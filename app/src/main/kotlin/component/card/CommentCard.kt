@@ -14,11 +14,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import component.dialog.CommentDiffDialog
+import data.db.LocalCommentDatabase
 import data.ui.CommentData
+import kotlinx.coroutines.launch
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
 import unilang.alias.*
@@ -26,7 +29,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-@SuppressLint("SimpleDateFormat")
+@SuppressLint("SimpleDateFormat", "CoroutineCreationDuringComposition")
 @Composable
 fun CommentCard(
     navToEdit: () -> Unit,
@@ -47,9 +50,16 @@ fun CommentCard(
             afterApplyRemote
         )
 
+    val ctx = LocalContext.current
+    fun ifExistLocalThenEdit() {
+        val localCommentDao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+        if (localCommentDao.maybe(data.id) != null)
+            navToEdit()
+    }
+
     Card(
         modifier = Modifier
-            .clickable { navToEdit() },
+            .clickable { ifExistLocalThenEdit() },
         colors = CardDefaults.cardColors(
             MaterialTheme.colorScheme.surfaceVariant
         )
@@ -150,6 +160,7 @@ fun CommentCardPreview() {
                 "The quick brown fox jumps over the lazy dog",
                 114514,
                 false,
+                Date(),
                 Date()
             ),
             true,
@@ -162,6 +173,7 @@ fun CommentCardPreview() {
                 "The quick brown fox jumps over the lazy dog",
                 114514,
                 true,
+                Date(),
                 Date()
             ),
             false,
