@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import ui.FillMaxWidthModifier
 
 @Composable
 fun TryPullDownInfo() {
@@ -28,8 +29,7 @@ fun TryPullDownInfo() {
                     imageVector = Icons.Default.South,
                     contentDescription = "No local data",
                     tint = MaterialTheme.colorScheme.outline,
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    modifier = FillMaxWidthModifier
                         .size(100.dp)
                 )
                 Spacer(modifier = Modifier.height(10.dp))
@@ -37,7 +37,7 @@ fun TryPullDownInfo() {
                     text = "No local data\nTry pull down to fetch data from remote",
                     color = MaterialTheme.colorScheme.outline,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = FillMaxWidthModifier
                 )
             }
         }

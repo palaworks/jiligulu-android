@@ -1,28 +1,27 @@
 package component
 
-import java.util.*
-import global.AppRoute
-import unilang.alias.*
-import android.os.Build
-import component.screen.*
-import global.bottomNavBarItems
-import androidx.compose.runtime.*
-import androidx.navigation.NavType
-import androidx.compose.material3.*
-import androidx.compose.ui.Modifier
-import androidx.annotation.RequiresApi
 import android.annotation.SuppressLint
-import androidx.navigation.navArgument
-import androidx.navigation.compose.NavHost
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
-import androidx.navigation.NavBackStackEntry
-import androidx.navigation.compose.composable
 import androidx.compose.material.icons.filled.*
-import androidx.navigation.compose.rememberNavController
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import data.grpc.CommentService
-import data.grpc.PostService
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import component.screen.*
+import global.AppRoute
+import global.bottomNavBarItems
+import ui.rememberMutStateOf
+import unilang.alias.*
+import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -32,7 +31,7 @@ fun AppScreen() {
     val navController = rememberNavController()
     val state by navController.currentBackStackEntryAsState()
 
-    var title by remember { mutableStateOf("Posts") }
+    var title by rememberMutStateOf("Posts")
 
     val idNavArg = navArgument("id") { type = NavType.LongType }
     val getIdNavArg = { entry: NavBackStackEntry ->

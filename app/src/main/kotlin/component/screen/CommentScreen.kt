@@ -3,26 +3,23 @@ package component.screen
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
-import java.util.*
-import unilang.alias.i64
-import component.CardList
-import component.card.CommentCard
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
-import component.dialog.CommentDiffDialog
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import component.CardList
+import component.card.CommentCard
 import data.db.LocalCommentDatabase
-import data.grpc.CommentService
 import data.grpc.CommentServiceSingleton
 import data.ui.CommentData
 import data.ui.sha256
-import kotlinx.coroutines.launch
+import ui.FillMaxSizeModifier
+import ui.rememberMutStateOf
+import unilang.alias.i64
+import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -34,8 +31,8 @@ fun CommentScreen(
 ) {
     val localCommentDao = LocalCommentDatabase.getDatabase(LocalContext.current).localCommentDao()
 
-    var fullCommentList by remember { mutableStateOf(listOf<CommentData>()) }
-    var conflictCommentList by remember { mutableStateOf(listOf<CommentData>()) }
+    var fullCommentList by rememberMutStateOf(listOf<CommentData>())
+    var conflictCommentList by rememberMutStateOf(listOf<CommentData>())
 
     val ctx = LocalContext.current
     val load = suspend {
@@ -71,8 +68,7 @@ fun CommentScreen(
     }
 
     Column(
-        Modifier
-            .fillMaxSize()
+        FillMaxSizeModifier
             .padding(contentPadding)
             .padding(horizontal = 10.dp)
     ) {

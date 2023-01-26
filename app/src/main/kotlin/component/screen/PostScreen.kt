@@ -3,30 +3,23 @@ package component.screen
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
-import java.util.*
-import data.ui.PostData
-import unilang.alias.i64
-import component.CardList
-import component.card.PostCard
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
-import component.card.PostDiffCard
-import component.dialog.PostDiffDialog
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import component.CardList
+import component.card.PostCard
 import data.db.LocalPostDatabase
-import data.grpc.CommentServiceSingleton
-import data.grpc.PostService
 import data.grpc.PostServiceSingleton
+import data.ui.PostData
 import data.ui.sha256
-import kotlinx.coroutines.launch
-import unilang.type.notNullThen
-import unilang.type.nullThen
+import ui.FillMaxSizeModifier
+import ui.rememberMutStateOf
+import unilang.alias.i64
+import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -38,8 +31,8 @@ fun PostScreen(
 ) {
     val localPostDao = LocalPostDatabase.getDatabase(LocalContext.current).localPostDao()
 
-    var fullPostList by remember { mutableStateOf(listOf<PostData>()) }
-    var conflictPostList by remember { mutableStateOf(listOf<PostData>()) }
+    var fullPostList by rememberMutStateOf(listOf<PostData>())
+    var conflictPostList by rememberMutStateOf(listOf<PostData>())
 
     val ctx = LocalContext.current
     val load = suspend {
@@ -75,8 +68,7 @@ fun PostScreen(
     }
 
     Column(
-        Modifier
-            .fillMaxSize()
+        FillMaxSizeModifier
             .padding(contentPadding)
             .padding(horizontal = 10.dp)
     ) {

@@ -1,10 +1,10 @@
 package data.db
 
-import java.util.Date
-import androidx.room.*
-import unilang.alias.i64
 import android.content.Context
+import androidx.room.*
 import data.db.converter.DateConverter
+import unilang.alias.i64
+import java.util.*
 
 @Entity(tableName = "local_post")
 data class LocalPost(

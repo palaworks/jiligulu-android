@@ -1,9 +1,9 @@
 package data.ui
 
 import data.db.LocalComment
-import java.util.*
-import unilang.alias.*
+import unilang.alias.i64
 import unilang.hash.sha256
+import java.util.*
 
 data class CommentData(
     val id: i64,

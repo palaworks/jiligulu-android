@@ -1,13 +1,14 @@
-package component
+package component.dialog
 
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.material3.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
+import ui.FillMaxWidthModifier
+import ui.rememberMutStateOf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -19,7 +20,7 @@ fun SettingDialog(
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit,
 ) {
-    var text by remember { mutableStateOf(initial) }
+    var text by rememberMutStateOf(initial)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -31,7 +32,7 @@ fun SettingDialog(
             )
         },
         text = {
-            TextField(modifier = Modifier.fillMaxWidth(),
+            TextField(modifier = FillMaxWidthModifier,
                 value = text,
                 placeholder = { Text(hint) },
                 visualTransformation = if (passwordMode)

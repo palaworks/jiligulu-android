@@ -1,26 +1,28 @@
 package component.card
 
-import java.util.*
-import unilang.alias.*
-import data.ui.PostData
-import java.text.SimpleDateFormat
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.Modifier
-import androidx.compose.material3.*
-import androidx.compose.ui.draw.clip
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.runtime.*
+import androidx.compose.ui.unit.dp
 import component.dialog.PostDiffDialog
+import data.ui.PostData
+import ui.FillMaxWidthModifier
+import ui.rememberMutStateOf
+import unilang.alias.*
+import java.text.SimpleDateFormat
+import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("SimpleDateFormat")
@@ -34,7 +36,7 @@ fun PostCard(
     afterApplyRemote: () -> Unit,
 ) {
     val fmt = SimpleDateFormat("yy-M-d h:mm")
-    var showDiffDialog by remember { mutableStateOf(false) }
+    var showDiffDialog by rememberMutStateOf(false)
 
     if (showDiffDialog)
         PostDiffDialog(
@@ -52,15 +54,14 @@ fun PostCard(
         )
     ) {
         Column(
-            Modifier
-                .fillMaxWidth()
+            FillMaxWidthModifier
                 .padding(20.dp)
         ) {
             Column(
-                Modifier.fillMaxWidth()
+                FillMaxWidthModifier
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = FillMaxWidthModifier,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     if (existDiff) {
@@ -92,8 +93,7 @@ fun PostCard(
 
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
+                        modifier = FillMaxWidthModifier
                     )
                     {
                         Text(
@@ -127,7 +127,7 @@ fun PostCard(
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = FillMaxWidthModifier,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row {

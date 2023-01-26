@@ -1,30 +1,20 @@
 package component.dialog
 
 import android.annotation.SuppressLint
-import java.util.*
 import android.os.Build
-import data.ui.CommentData
-import component.card.CommentDiffCard
-import androidx.compose.ui.unit.dp
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
+import component.card.CommentDiffCard
 import data.db.LocalCommentDatabase
 import data.grpc.CommentServiceSingleton
+import data.ui.CommentData
 import kotlinx.coroutines.launch
+import ui.rememberMutStateOf
 import unilang.alias.i64
+import java.util.*
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -44,10 +34,10 @@ fun CommentDiffDialog(
     else
         Optional.of(CommentData(localData))
 
-    var remoteComment by remember { mutableStateOf(Optional.empty<CommentData>()) }
+    var remoteComment by rememberMutStateOf(Optional.empty<CommentData>())
     val ctx = LocalContext.current
 
-    var loaded by remember { mutableStateOf(false) }
+    var loaded by rememberMutStateOf(false)
 
     rememberCoroutineScope().launch {
         val commentService = CommentServiceSingleton.getService(ctx).get()

@@ -1,19 +1,26 @@
 package component
 
-import unilang.alias.*
-import java.util.Optional
-import androidx.compose.runtime.*
-import androidx.compose.ui.unit.dp
-import androidx.compose.material3.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Numbers
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.material.icons.filled.Numbers
-import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.unit.dp
+import ui.FillMaxWidthModifier
+import ui.rememberMutStateOf
+import unilang.alias.i64
+import java.util.*
 
 @Composable
 fun PostEditor(
@@ -21,12 +28,12 @@ fun PostEditor(
     id: Optional<i64>,
     afterSave: (String, String) -> Unit
 ) {
-    var titleText by remember { mutableStateOf("") }
-    var bodyText by remember { mutableStateOf("") }
+    var titleText by rememberMutStateOf("")
+    var bodyText by rememberMutStateOf("")
 
     Column {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = FillMaxWidthModifier,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -51,9 +58,8 @@ fun PostEditor(
         }
 
         BasicTextField(
-            modifier = Modifier
-                .padding(vertical = 10.dp)
-                .fillMaxWidth(),
+            modifier = FillMaxWidthModifier
+                .padding(vertical = 10.dp),
             value = titleText,
             textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onBackground),
             decorationBox = { innerTextField ->
@@ -69,8 +75,7 @@ fun PostEditor(
         )
 
         BasicTextField(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = FillMaxWidthModifier
                 .focusRequester(bodyFocusRequester),
             value = bodyText,
             textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),

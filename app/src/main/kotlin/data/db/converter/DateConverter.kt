@@ -2,7 +2,7 @@ package data.db.converter
 
 import androidx.room.TypeConverter
 import unilang.alias.i64
-import java.util.Date
+import java.util.*
 
 class DateConverter {
     @TypeConverter

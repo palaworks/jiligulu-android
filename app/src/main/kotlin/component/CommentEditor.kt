@@ -1,22 +1,26 @@
 package component
 
-import unilang.alias.i64
-import java.util.Optional
-import androidx.compose.runtime.*
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.material3.Button
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Numbers
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.material.icons.filled.Numbers
-import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.unit.dp
+import ui.FillMaxWidthModifier
+import ui.rememberMutStateOf
+import unilang.alias.i64
+import java.util.*
 
 @Composable
 fun CommentEditor(
@@ -24,11 +28,11 @@ fun CommentEditor(
     id: Optional<i64>,
     afterSave: (String) -> Unit
 ) {
-    var bodyText by remember { mutableStateOf("") }
+    var bodyText by rememberMutStateOf("")
 
     Column {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = FillMaxWidthModifier,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -53,9 +57,8 @@ fun CommentEditor(
         }
 
         BasicTextField(
-            modifier = Modifier
+            modifier = FillMaxWidthModifier
                 .padding(top = 10.dp)
-                .fillMaxWidth()
                 .focusRequester(bodyFocusRequester),
             value = bodyText,
             textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onBackground),
