@@ -1,5 +1,7 @@
 package component
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
@@ -10,25 +12,68 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import data.db.LocalComment
+import data.db.LocalCommentDatabase
+import data.grpc.CommentServiceSingleton
+import kotlinx.coroutines.launch
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
 import unilang.alias.i64
 import java.util.*
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun CommentEditor(
     bodyFocusRequester: FocusRequester,
     id: Optional<i64>,
+    bindingId: Optional<i64>,
+    isReply: Optional<Boolean>,
     afterSave: (String) -> Unit
 ) {
-    var bodyText by rememberMutStateOf("")
+    val ctx = LocalContext.current
+    val localCommentDao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+    val old = localCommentDao.maybe(id.get())
+
+    var bodyText by rememberMutStateOf(
+        if (id.isPresent) old!!.body
+        else ""
+    )
+
+    val scope = rememberCoroutineScope()
+
+    fun update() = scope.launch {
+        localCommentDao.update(
+            old!!.copy(
+                body = bodyText,
+                modifyTime = Date()
+            )
+        )
+    }
+
+    fun create() = scope.launch {
+        val commentService = CommentServiceSingleton.getService(ctx).get()
+        val created = commentService.create(bodyText, bindingId.get(), isReply.get()).get()
+
+        localCommentDao.insert(
+            LocalComment(
+                created.id,
+                created.body,
+                created.bindingId,
+                created.isReply,
+                created.createTime,
+                created.modifyTime,
+            )
+        )
+    }
 
     Column {
         Row(
@@ -50,7 +95,14 @@ fun CommentEditor(
             Button(
                 modifier = Modifier.height(30.dp),
                 contentPadding = PaddingValues(0.dp),
-                onClick = { afterSave(bodyText) }
+                onClick = {
+                    if (id.isPresent)
+                        update()
+                    else
+                        create()
+
+                    afterSave(bodyText)
+                }
             ) {
                 Text("Save")
             }
@@ -74,10 +126,4 @@ fun CommentEditor(
             onValueChange = { bodyText = it }
         )
     }
-}
-
-@Preview
-@Composable
-fun CommentEditorPreview() {
-    CommentEditor(FocusRequester(), Optional.of(114514)) {}
 }
