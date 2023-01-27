@@ -17,10 +17,10 @@ fun SettingItem(
     title: String,
     hint: String,
     passwordMode: Boolean,
-    init: String?,
+    init: String,
     onSave: (String) -> Unit
 ) {
-    var settingValue by rememberMutStateOf(init.orEmpty())
+    var settingValue by rememberMutStateOf(init)
     var openDialog by rememberMutStateOf(false)
 
     if (openDialog)
