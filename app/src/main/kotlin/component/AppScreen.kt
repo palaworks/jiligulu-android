@@ -21,6 +21,8 @@ import global.AppRoute
 import global.bottomNavBarItems
 import ui.rememberMutStateOf
 import unilang.alias.*
+import unilang.type.none
+import unilang.type.some
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -75,8 +77,8 @@ fun AppScreen() {
                     navToPostEditor = { id: i64 ->
                         navController.navigate("${AppRoute.MODIFY_POST}/$id")
                     },
-                    navToCreateComment = { id: i64 ->
-                        navController.navigate("${AppRoute.CREATE_COMMENT}/$id")
+                    navToCreateComment = { bindingId: i64 ->
+                        navController.navigate("${AppRoute.CREATE_COMMENT}/$bindingId-false")
                     }
                 )
             }
@@ -103,15 +105,28 @@ fun AppScreen() {
                     navToCommentEditor = { id: i64 ->
                         navController.navigate("${AppRoute.MODIFY_COMMENT}/$id")
                     },
-                    navToCreateComment = { id: i64 ->
-                        navController.navigate("${AppRoute.CREATE_COMMENT}/$id")
+                    navToCreateComment = { bindingId: i64 ->
+                        navController.navigate("${AppRoute.CREATE_COMMENT}/$bindingId-true")
                     }
                 )
             }
-            composable(AppRoute.CREATE_COMMENT) {
+            composable(
+                "${AppRoute.CREATE_COMMENT}/{bindingId}-{isReply}",
+                arguments = listOf(
+                    navArgument("bindingId") { type = NavType.LongType },
+                    navArgument("isReply") { type = NavType.BoolType }
+                )
+            ) { entry ->
                 title = "Create comment"
 
-                CommentEditScreen(contentPadding = contentPadding, id = Optional.empty())
+                val bindingId = entry.arguments!!.getLong("bindingId")
+                val isReply = entry.arguments!!.getBoolean("isReply")
+                CommentEditScreen(
+                    contentPadding = contentPadding,
+                    id = none(),
+                    bindingId = bindingId.some(),
+                    isReply = isReply.some()
+                )
             }
             composable(
                 "${AppRoute.MODIFY_COMMENT}/{id}",
@@ -120,7 +135,12 @@ fun AppScreen() {
                 title = "Edit comment"
 
                 val id = getIdNavArg(entry)
-                CommentEditScreen(contentPadding = contentPadding, id = Optional.of(id))
+                CommentEditScreen(
+                    contentPadding = contentPadding,
+                    id = id.some(),
+                    bindingId = none(),
+                    isReply = none()
+                )
             }
 
             composable(AppRoute.SETTINGS) {
