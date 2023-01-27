@@ -21,9 +21,12 @@ import androidx.compose.ui.unit.dp
 import component.dialog.CommentDiffDialog
 import data.db.LocalCommentDatabase
 import data.ui.CommentData
+import kotlinx.coroutines.launch
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
 import unilang.alias.*
+import unilang.time.format
+import unilang.time.yyMdHmm
 import unilang.type.notNullThen
 import java.text.SimpleDateFormat
 import java.util.*
@@ -39,7 +42,6 @@ fun CommentCard(
     afterApplyLocal: () -> Unit,
     afterApplyRemote: () -> Unit,
 ) {
-    val fmt = SimpleDateFormat("yy-M-d h:mm")
     var showDiffDialog by rememberMutStateOf(false)
 
     if (showDiffDialog)
@@ -51,9 +53,10 @@ fun CommentCard(
         )
 
     val ctx = LocalContext.current
-    fun ifExistLocalThenEdit() {
-        val localCommentDao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
-        localCommentDao.maybe(data.id).notNullThen { navToEdit() }
+    val coroutineScope = rememberCoroutineScope()
+    fun ifExistLocalThenEdit() = coroutineScope.launch {
+        val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+        dao.maybe(data.id).notNullThen { navToEdit() }
     }
 
     Card(
@@ -137,7 +140,7 @@ fun CommentCard(
                     )
                     Spacer(modifier = Modifier.width(3.dp))
                     Text(
-                        text = fmt.format(data.createTime),
+                        text = data.createTime.format(yyMdHmm),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.outline,
                     )

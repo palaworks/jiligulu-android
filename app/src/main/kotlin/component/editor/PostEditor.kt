@@ -1,5 +1,6 @@
 package component.editor
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
@@ -22,37 +23,44 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import data.db.LocalPostDatabase
 import data.grpc.PostServiceSingleton
+import data.ui.PostData
 import kotlinx.coroutines.launch
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
 import unilang.alias.i64
+import unilang.type.none
+import unilang.type.some
 import java.util.*
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun PostEditor(
     bodyFocusRequester: FocusRequester,
-    id: Optional<i64>,
-    afterSave: (String, String) -> Unit
+    id: Optional<i64>
 ) {
     val ctx = LocalContext.current
-    val localPostDao = LocalPostDatabase.getDatabase(ctx).localPostDao()
-    val old = localPostDao.maybe(id.get())
+    var initialized by rememberMutStateOf(false)
 
-    var titleText by rememberMutStateOf(
-        if (id.isPresent) old!!.title
-        else ""
-    )
-    var bodyText by rememberMutStateOf(
-        if (id.isPresent) old!!.body
-        else ""
-    )
+    var titleText by rememberMutStateOf("")
+    var bodyText by rememberMutStateOf("")
 
-    val scope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
 
-    fun update() = scope.launch {
-        localPostDao.update(
-            old!!.copy(
+    if (id.isPresent && !initialized)
+        coroutineScope.launch {
+            val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
+            val data = dao.getOne(id.get())
+            titleText = data.title
+            bodyText = data.body
+            initialized = true
+        }
+
+    fun update() = coroutineScope.launch {
+        val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
+        val data = dao.getOne(id.get())
+        dao.update(
+            data.copy(
                 title = titleText,
                 body = bodyText,
                 modifyTime = Date()
@@ -60,11 +68,12 @@ fun PostEditor(
         )
     }
 
-    fun create() = scope.launch {
-        val commentService = PostServiceSingleton.getService(ctx).get()
-        val created = commentService.create(titleText, bodyText).get()
+    fun create() = coroutineScope.launch {
+        val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
+        val service = PostServiceSingleton.getService(ctx).get()
 
-        localPostDao.insert(created)
+        val remoteData = service.create(titleText, bodyText).get()
+        dao.insert(remoteData)
     }
 
     Column {
@@ -92,8 +101,6 @@ fun PostEditor(
                         update()
                     else
                         create()
-
-                    afterSave(titleText, bodyText)
                 }
             ) {
                 Text("Save")

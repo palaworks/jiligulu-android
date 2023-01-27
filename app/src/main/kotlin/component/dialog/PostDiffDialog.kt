@@ -30,17 +30,20 @@ fun PostDiffDialog(
     afterApplyLocal: () -> Unit,
     afterApplyRemote: () -> Unit
 ) {
-    //TODO async fetch
-    val localPost = LocalPostDatabase.getDatabase(LocalContext.current).localPostDao().maybe(id).optional()
-    var remotePost by rememberMutStateOf(Optional.empty<PostData>())
+    var localPost by rememberMutStateOf(none<PostData>())
+    var remotePost by rememberMutStateOf(none<PostData>())
 
     val ctx = LocalContext.current
 
     var loaded by rememberMutStateOf(false)
 
     rememberCoroutineScope().launch {
-        val postService = PostServiceSingleton.getService(ctx).get()
-        remotePost = postService.getOne(id)
+        val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
+        val service = PostServiceSingleton.getService(ctx).get()
+
+        localPost = dao.maybe(id).optional()
+        remotePost = service.getOne(id)
+
         loaded = true
     }
 

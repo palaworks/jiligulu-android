@@ -16,8 +16,10 @@ import data.db.LocalCommentDatabase
 import data.grpc.CommentServiceSingleton
 import data.ui.CommentData
 import data.ui.sha256
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import ui.FillMaxSizeModifier
-import ui.rememberMutStateOf
+import ui.state.CommentScreenViewModel
 import unilang.alias.i64
 import unilang.type.copyUnless
 import java.util.*
@@ -25,18 +27,17 @@ import java.util.*
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun CommentScreen(
+fun CommentListScreen(
     contentPadding: PaddingValues,
+    viewModel: CommentScreenViewModel,
     navToCommentEditor: (i64) -> Unit,
     navToCreateComment: (i64) -> Unit,
 ) {
-    val localCommentDao = LocalCommentDatabase.getDatabase(LocalContext.current).localCommentDao()
-
-    var fullCommentList by rememberMutStateOf(listOf<CommentData>())
-    var conflictCommentList by rememberMutStateOf(listOf<CommentData>())
-
     val ctx = LocalContext.current
-    val load = suspend {
+    val uiState by viewModel.state.collectAsState()
+
+    suspend fun load() = withContext(Dispatchers.IO) {
+        val localCommentDao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
         val commentService = CommentServiceSingleton.getService(ctx).get()
 
         val remoteIdSha256Map = commentService.getAllSha256()
@@ -65,8 +66,7 @@ fun CommentScreen(
                 commentService.getOne(it).get()//add remote only comment
             }
 
-        conflictCommentList = conflict
-        fullCommentList = conflict + resolved
+        viewModel.reset(conflict + resolved, conflict)
     }
 
     Column(
@@ -75,11 +75,11 @@ fun CommentScreen(
             .padding(horizontal = 10.dp)
     ) {
         CardList(
-            itemFetcher = {
+            uiState.full,
+            onRefresh = {
                 load()
-                fullCommentList
             },
-            itemRender = { data ->
+            render = { data ->
                 val id = data.id
                 CommentCard(
                     {
@@ -89,12 +89,12 @@ fun CommentScreen(
                         navToCreateComment(id)
                     },
                     data,
-                    conflictCommentList.any { it.id == id },
+                    uiState.conflict.any { it.id == id },
                     {
-                        conflictCommentList = conflictCommentList.copyUnless { it.id == id }
+                        viewModel.resetConflict(uiState.conflict.copyUnless { it.id == id })
                     },
                     {
-                        conflictCommentList = conflictCommentList.copyUnless { it.id == id }
+                        viewModel.resetConflict(uiState.conflict.copyUnless { it.id == id })
                     },
                 )
             }

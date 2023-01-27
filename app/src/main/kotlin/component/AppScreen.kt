@@ -89,7 +89,7 @@ fun AppScreen() {
             composable(AppRoute.POST_LIST) {
                 title = "Posts"
 
-                PostScreen(
+                PostListScreen(
                     contentPadding = contentPadding,
                     postScreenViewModel,
                     navToPostEditor = { id: i64 ->
@@ -118,7 +118,7 @@ fun AppScreen() {
             composable(AppRoute.COMMENT_LIST) {
                 title = "Comments"
 
-                CommentScreen(
+                CommentListScreen(
                     contentPadding = contentPadding,
                     viewModel = commentScreenViewModel,
                     navToCommentEditor = { id: i64 ->

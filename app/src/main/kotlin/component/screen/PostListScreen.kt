@@ -16,8 +16,10 @@ import data.db.LocalPostDatabase
 import data.grpc.PostServiceSingleton
 import data.ui.PostData
 import data.ui.sha256
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import ui.FillMaxSizeModifier
-import ui.rememberMutStateOf
+import ui.state.PostScreenViewModel
 import unilang.alias.i64
 import unilang.type.copyUnless
 import java.util.*
@@ -25,18 +27,17 @@ import java.util.*
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun PostScreen(
+fun PostListScreen(
     contentPadding: PaddingValues,
+    viewModel: PostScreenViewModel,
     navToPostEditor: (i64) -> Unit,
     navToCreateComment: (i64) -> Unit,
 ) {
-    val localPostDao = LocalPostDatabase.getDatabase(LocalContext.current).localPostDao()
-
-    var fullPostList by rememberMutStateOf(listOf<PostData>())
-    var conflictPostList by rememberMutStateOf(listOf<PostData>())
-
     val ctx = LocalContext.current
-    val load = suspend {
+    val uiState by viewModel.state.collectAsState()
+
+    suspend fun load() = withContext(Dispatchers.IO) {
+        val localPostDao = LocalPostDatabase.getDatabase(ctx).localPostDao()
         val postService = PostServiceSingleton.getService(ctx).get()
 
         val remoteIdSha256Map = postService.getAllSha256()
@@ -64,8 +65,7 @@ fun PostScreen(
                 postService.getOne(it).get()//add remote only post
             }
 
-        conflictPostList = conflict
-        fullPostList = conflict + resolved
+        viewModel.reset(conflict + resolved, conflict)
     }
 
     Column(
@@ -74,11 +74,11 @@ fun PostScreen(
             .padding(horizontal = 10.dp)
     ) {
         CardList(
-            itemFetcher = {
+            uiState.full,
+            onRefresh = {
                 load()
-                fullPostList
             },
-            itemRender = { data ->
+            render = { data ->
                 val id = data.id
                 PostCard(
                     {
@@ -88,12 +88,12 @@ fun PostScreen(
                         navToCreateComment(id)
                     },
                     data,
-                    conflictPostList.any { it.id == id },
+                    uiState.conflict.any { it.id == id },
                     {
-                        conflictPostList = conflictPostList.copyUnless { it.id == id }
+                        viewModel.resetConflict(uiState.conflict.copyUnless { it.id == id })
                     },
                     {
-                        conflictPostList = conflictPostList.copyUnless { it.id == id }
+                        viewModel.resetConflict(uiState.conflict.copyUnless { it.id == id })
                     },
                 )
             }

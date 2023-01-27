@@ -1,5 +1,6 @@
 package component.editor
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
@@ -22,12 +23,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import data.db.LocalCommentDatabase
 import data.grpc.CommentServiceSingleton
+import data.ui.CommentData
 import kotlinx.coroutines.launch
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
 import unilang.alias.i64
+import unilang.type.none
+import unilang.type.orElse
+import unilang.type.some
 import java.util.*
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun CommentEditor(
@@ -35,33 +41,38 @@ fun CommentEditor(
     id: Optional<i64>,
     bindingId: Optional<i64>,
     isReply: Optional<Boolean>,
-    afterSave: (String) -> Unit
 ) {
     val ctx = LocalContext.current
-    val localCommentDao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
-    val old = localCommentDao.maybe(id.get())
+    var initialized by rememberMutStateOf(false)
 
-    var bodyText by rememberMutStateOf(
-        if (id.isPresent) old!!.body
-        else ""
-    )
+    var bodyText by rememberMutStateOf("")
 
-    val scope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
+    if (id.isPresent && !initialized)
+        coroutineScope.launch {
+            val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+            val data = dao.getOne(id.get())
+            bodyText = data.body
+            initialized = true
+        }
 
-    fun update() = scope.launch {
-        localCommentDao.update(
-            old!!.copy(
+    fun update() = coroutineScope.launch {
+        val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+        val data = dao.getOne(id.get())
+        dao.update(
+            data.copy(
                 body = bodyText,
                 modifyTime = Date()
             )
         )
     }
 
-    fun create() = scope.launch {
-        val commentService = CommentServiceSingleton.getService(ctx).get()
-        val created = commentService.create(bodyText, bindingId.get(), isReply.get()).get()
+    fun create() = coroutineScope.launch {
+        val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+        val service = CommentServiceSingleton.getService(ctx).get()
 
-        localCommentDao.insert(created)
+        val remoteData = service.create(bodyText, bindingId.get(), isReply.get()).get()
+        dao.insert(remoteData)
     }
 
     Column {
@@ -89,8 +100,6 @@ fun CommentEditor(
                         update()
                     else
                         create()
-
-                    afterSave(bodyText)
                 }
             ) {
                 Text("Save")

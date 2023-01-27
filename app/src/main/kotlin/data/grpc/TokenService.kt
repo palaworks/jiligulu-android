@@ -32,10 +32,10 @@ class TokenService(
 }
 
 object TokenServiceSingleton {
-    private var tokenService: Optional<TokenService> = none()
+    private var tokenService = none<TokenService>()
 
     private var tokenGetTime = Date()
-    private var token = Optional.empty<String>()
+    private var token = none<String>()
 
     private const val oneMinute = 1000 * 60
 

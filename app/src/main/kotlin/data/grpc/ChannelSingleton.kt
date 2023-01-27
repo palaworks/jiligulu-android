@@ -6,27 +6,30 @@ import androidx.annotation.RequiresApi
 import data.db.AppSettingDatabase
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import unilang.type.none
+import unilang.type.some
 import java.util.*
 
 object ChannelSingleton {
-    private var channel: Optional<ManagedChannel> = none()
+    private var channel = none<ManagedChannel>()
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    fun getChannel(ctx: Context): Optional<ManagedChannel> {
-        val appSettingDao = AppSettingDatabase.getDatabase(ctx).appSettingDao()
-        val appSetting = appSettingDao.get()
+    suspend fun getChannel(ctx: Context) =
+        withContext(Dispatchers.IO) {
+            val dao = AppSettingDatabase.getDatabase(ctx).appSettingDao()
+            val appSetting = dao.get()
 
-        if (channel.isEmpty)
-            runCatching {
-                channel = Optional.of(
-                    ManagedChannelBuilder
+            if (channel.isEmpty)
+                runCatching {
+                    channel = ManagedChannelBuilder
                         .forAddress(appSetting.grpcHost.orEmpty(), appSetting.grpcPort ?: 0)
                         .usePlaintext()
                         .build()
-                )
-            }
+                        .some()
+                }
 
-        return channel
-    }
+            channel
+        }
 }

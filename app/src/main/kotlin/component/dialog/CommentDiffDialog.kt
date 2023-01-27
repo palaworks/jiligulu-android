@@ -28,18 +28,20 @@ fun CommentDiffDialog(
     afterApplyLocal: () -> Unit,
     afterApplyRemote: () -> Unit
 ) {
-    //TODO async fetch
-    val localComment =
-        LocalCommentDatabase.getDatabase(LocalContext.current).localCommentDao().maybe(id).optional()
+    var localComment by rememberMutStateOf(none<CommentData>())
+    var remoteComment by rememberMutStateOf(none<CommentData>())
 
-    var remoteComment by rememberMutStateOf(Optional.empty<CommentData>())
     val ctx = LocalContext.current
 
     var loaded by rememberMutStateOf(false)
 
     rememberCoroutineScope().launch {
-        val commentService = CommentServiceSingleton.getService(ctx).get()
-        remoteComment = commentService.getOne(id)
+        val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+        val service = CommentServiceSingleton.getService(ctx).get()
+
+        localComment = dao.maybe(id).optional()
+        remoteComment = service.getOne(id)
+
         loaded = true
     }
 

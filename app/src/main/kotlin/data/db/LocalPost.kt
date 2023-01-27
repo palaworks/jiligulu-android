@@ -1,31 +1,37 @@
 package data.db
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.room.*
 import data.db.converter.DateConverter
 import data.ui.PostData
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import unilang.alias.i64
+import unilang.type.none
+import unilang.type.some
 import java.util.*
 
 @Dao
 interface LocalPostDao {
     @Query("SELECT * FROM local_post WHERE post_id = (:id)")
-    fun maybe(id: i64): PostData?
+    suspend fun maybe(id: i64): PostData?
 
     @Query("SELECT * FROM local_post WHERE post_id = (:id)")
-    fun getOne(id: i64): PostData
+    suspend fun getOne(id: i64): PostData
 
     @Query("SELECT * FROM local_post")
-    fun getAll(): List<PostData>
+    suspend fun getAll(): List<PostData>
 
     @Insert
-    fun insert(data: PostData)
+    suspend fun insert(data: PostData)
 
     @Update
-    fun update(data: PostData)
+    suspend fun update(data: PostData)
 
     @Query("DELETE FROM local_post WHERE post_id = (:id)")
-    fun delete(id: i64)
+    suspend fun delete(id: i64)
 }
 
 @TypeConverters(DateConverter::class)
@@ -34,23 +40,24 @@ abstract class LocalPostDatabase : RoomDatabase() {
     abstract fun localPostDao(): LocalPostDao
 
     companion object {
-        private var INSTANCE: LocalPostDatabase? = null
-        fun getDatabase(ctx: Context): LocalPostDatabase {
-            if (INSTANCE == null) {
-                synchronized(this) {
-                    INSTANCE =
-                        Room.databaseBuilder(
-                            ctx,
-                            LocalPostDatabase::class.java,
-                            "local_post_database"
-                        )
-                            //TODO remove this for better performance
-                            .allowMainThreadQueries()
-                            .build()
-                }
-            }
+        private var db = none<LocalPostDatabase>()
 
-            return INSTANCE!!
-        }
+        @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+        suspend fun getDatabase(ctx: Context) =
+            withContext(Dispatchers.IO) {
+                if (db.isEmpty)
+                    synchronized(this) {
+                        db =
+                            Room.databaseBuilder(
+                                ctx,
+                                LocalPostDatabase::class.java,
+                                "local_post_database"
+                            )
+                                .build()
+                                .some()
+                    }
+
+                db.get()
+            }
     }
 }

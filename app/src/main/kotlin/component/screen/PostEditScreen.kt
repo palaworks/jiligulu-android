@@ -25,31 +25,27 @@ fun PostEditScreen(
 ) {
     val fr = remember { FocusRequester() }
 
-    Column(
-        modifier = Modifier
-            .padding(contentPadding)
-    ) {
-        Column(modifier = Modifier.padding(bottom = 40.dp)) {
+    Column(Modifier.padding(contentPadding)) {
+        Column(Modifier.padding(bottom = 40.dp)) {
             Column(
-                modifier = Modifier
+                Modifier
                     .padding(horizontal = 20.dp)
                     .verticalScroll(rememberScrollState())
             ) {
                 Spacer(modifier = Modifier.height(10.dp))
 
-                PostEditor(fr, id) { _, _ -> }
+                PostEditor(
+                    fr,
+                    id
+                )
             }
 
             NoRipple {
                 Column {
-                    Spacer(modifier = FillMaxSizeModifier
+                    Spacer(FillMaxSizeModifier
                         .clickable { fr.requestFocus() })
                 }
             }
         }
     }
-}
-
-@Composable
-fun PostEditScreenPreview() {
 }

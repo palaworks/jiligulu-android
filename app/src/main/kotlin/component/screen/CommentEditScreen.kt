@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import component.NoRipple
 import component.editor.CommentEditor
@@ -28,23 +27,21 @@ fun CommentEditScreen(
 ) {
     val fr = remember { FocusRequester() }
 
-    Column(
-        modifier = Modifier
-            .padding(contentPadding)
-    ) {
-        Column(modifier = Modifier.padding(bottom = 40.dp)) {
+    Column(Modifier.padding(contentPadding)) {
+        Column(Modifier.padding(bottom = 40.dp)) {
             Column(
-                modifier = Modifier
+                Modifier
                     .padding(horizontal = 20.dp)
                     .verticalScroll(rememberScrollState())
             ) {
                 Spacer(modifier = Modifier.height(10.dp))
+
                 CommentEditor(
                     fr,
                     id,
                     bindingId,
                     isReply
-                ) { }
+                )
             }
 
             NoRipple {
@@ -55,9 +52,4 @@ fun CommentEditScreen(
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun CommentEditScreenPreview() {
 }
