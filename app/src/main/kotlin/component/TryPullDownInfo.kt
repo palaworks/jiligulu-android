@@ -27,14 +27,17 @@ fun TryPullDownInfo() {
             ) {
                 Icon(
                     imageVector = Icons.Default.South,
-                    contentDescription = "No local data",
+                    contentDescription = "No data yet",
                     tint = MaterialTheme.colorScheme.outline,
                     modifier = FillMaxWidthModifier
                         .size(100.dp)
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "No local data\nTry pull down to fetch data from remote",
+                    text =
+                    """No data yet
+                       |Try pull down to fetch data from remote
+                       |Or draft a new one""".trimMargin("|"),
                     color = MaterialTheme.colorScheme.outline,
                     textAlign = TextAlign.Center,
                     modifier = FillMaxWidthModifier

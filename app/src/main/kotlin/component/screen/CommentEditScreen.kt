@@ -12,8 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import component.CommentEditor
 import component.NoRipple
+import component.editor.CommentEditor
 import ui.FillMaxSizeModifier
 import unilang.alias.i64
 import java.util.*

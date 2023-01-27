@@ -18,14 +18,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import data.db.LocalPost
 import data.db.LocalPostDatabase
 import data.grpc.PostServiceSingleton
 import data.ui.PostData
 import data.ui.sha256
 import kotlinx.coroutines.launch
 import ui.FillMaxWidthModifier
-import java.text.SimpleDateFormat
+import unilang.time.format
+import unilang.time.yyMdHmm
+import unilang.type.none
+import unilang.type.some
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -37,10 +39,7 @@ fun PostDiffCard(
     afterApplyLocal: () -> Unit,
     afterApplyRemote: () -> Unit,
 ) {
-    val fmt = SimpleDateFormat("yy-M-d h:mm")
-    Column(
-        FillMaxWidthModifier
-    ) {
+    Column(FillMaxWidthModifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Default.Numbers,
@@ -183,7 +182,7 @@ fun PostDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = localPost.map { fmt.format(it.createTime) }.orElse("-"),
+                    text = localPost.map { it.modifyTime.format(yyMdHmm) }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
                 )
@@ -196,7 +195,7 @@ fun PostDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = remotePost.map { fmt.format(it.createTime) }.orElse("-"),
+                    text = remotePost.map { it.modifyTime.format(yyMdHmm) }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
                 )
@@ -234,15 +233,7 @@ fun PostDiffCard(
                 //TODO handle err
                 if (localPost.isEmpty) {
                     val post = remotePost.get()
-                    localPostDao.insert(
-                        LocalPost(
-                            post.id,
-                            post.title,
-                            post.body,
-                            post.createTime,
-                            post.modifyTime
-                        )
-                    )
+                    localPostDao.insert(post)
                 } else if (remotePost.isEmpty)
                     localPostDao.delete(localPost.get().id)
                 else {
@@ -334,15 +325,15 @@ fun PostDiffCardPreview() {
         Date(),
     )
     Column {
-        //PostDiffCard(Optional.of(localPost), Optional.of(remotePost))
         PostDiffCard(
-            Optional.of(localPost), Optional.empty(),
+            localPost.some(),
+            none(),
             afterApplyLocal = {},
             afterApplyRemote = {}
         )
         PostDiffCard(
-            Optional.empty(),
-            Optional.of(remotePost),
+            none(),
+            remotePost.some(),
             afterApplyLocal = {},
             afterApplyRemote = {}
         )

@@ -3,38 +3,33 @@ package data.db
 import android.content.Context
 import androidx.room.*
 import data.db.converter.DateConverter
+import data.ui.PostData
 import unilang.alias.i64
 import java.util.*
 
-@Entity(tableName = "local_post")
-data class LocalPost(
-    @PrimaryKey val id: i64,
-    @ColumnInfo(name = "title") val title: String,
-    @ColumnInfo(name = "body") val body: String,
-    @ColumnInfo(name = "create_time") val createTime: Date,
-    @ColumnInfo(name = "modify_time") val modifyTime: Date,
-)
-
 @Dao
 interface LocalPostDao {
-    @Query("SELECT * FROM local_post WHERE id = (:id)")
-    fun maybe(id: i64): LocalPost?
+    @Query("SELECT * FROM local_post WHERE post_id = (:id)")
+    fun maybe(id: i64): PostData?
+
+    @Query("SELECT * FROM local_post WHERE post_id = (:id)")
+    fun getOne(id: i64): PostData
 
     @Query("SELECT * FROM local_post")
-    fun getAll(): List<LocalPost>
+    fun getAll(): List<PostData>
 
     @Insert
-    fun insert(localPost: LocalPost)
+    fun insert(data: PostData)
 
     @Update
-    fun update(localPost: LocalPost)
+    fun update(data: PostData)
 
-    @Query("DELETE FROM local_post WHERE id = (:id)")
+    @Query("DELETE FROM local_post WHERE post_id = (:id)")
     fun delete(id: i64)
 }
 
 @TypeConverters(DateConverter::class)
-@Database(entities = [LocalPost::class], version = 1)
+@Database(entities = [PostData::class], version = 1)
 abstract class LocalPostDatabase : RoomDatabase() {
     abstract fun localPostDao(): LocalPostDao
 

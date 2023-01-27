@@ -16,6 +16,9 @@ import data.ui.PostData
 import kotlinx.coroutines.launch
 import ui.rememberMutStateOf
 import unilang.alias.i64
+import unilang.type.none
+import unilang.type.optional
+import unilang.type.some
 import java.util.*
 
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -28,13 +31,7 @@ fun PostDiffDialog(
     afterApplyRemote: () -> Unit
 ) {
     //TODO async fetch
-    val localData = LocalPostDatabase.getDatabase(LocalContext.current).localPostDao().maybe(id)
-
-    val localPost = if (localData == null)
-        Optional.empty()
-    else
-        Optional.of(PostData(localData))
-
+    val localPost = LocalPostDatabase.getDatabase(LocalContext.current).localPostDao().maybe(id).optional()
     var remotePost by rememberMutStateOf(Optional.empty<PostData>())
 
     val ctx = LocalContext.current

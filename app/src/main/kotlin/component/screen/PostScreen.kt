@@ -19,6 +19,7 @@ import data.ui.sha256
 import ui.FillMaxSizeModifier
 import ui.rememberMutStateOf
 import unilang.alias.i64
+import unilang.type.copyUnless
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -46,16 +47,16 @@ fun PostScreen(
         val conflict = localPostList
             .fold(mutableListOf<PostData>()) { acc, localPost ->
                 acc.apply {
-                    val localSha256 = PostData(localPost).sha256()
+                    val localSha256 = localPost.sha256()
                     val remoteSha256 = remoteIdSha256Map[localPost.id]
                     if (remoteSha256 == null)
-                        acc.add(PostData(localPost))//local only post
+                        acc.add(localPost)//local only post
                     else {
                         remoteIdSha256Map.remove(localPost.id)
                         if (remoteSha256 == localSha256)
-                            resolved.add(PostData(localPost))//resolved
+                            resolved.add(localPost)//resolved
                         else
-                            acc.add(PostData(localPost))//conflict
+                            acc.add(localPost)//conflict
                     }
                 }
             } + remoteIdSha256Map.keys
@@ -83,18 +84,16 @@ fun PostScreen(
                     {
                         navToPostEditor(id)
                     },
-                    { navToCreateComment(id) },
+                    {
+                        navToCreateComment(id)
+                    },
                     data,
                     conflictPostList.any { it.id == id },
                     {
-                        conflictPostList = conflictPostList
-                            .toMutableList()
-                            .apply { this.removeIf { it.id == id } }
+                        conflictPostList = conflictPostList.copyUnless { it.id == id }
                     },
                     {
-                        conflictPostList = conflictPostList
-                            .toMutableList()
-                            .apply { this.removeIf { it.id == id } }
+                        conflictPostList = conflictPostList.copyUnless { it.id == id }
                     },
                 )
             }

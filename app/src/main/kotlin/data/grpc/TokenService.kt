@@ -3,14 +3,13 @@ package data.grpc
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.ui.platform.LocalContext
 import data.db.AppSettingDatabase
 import grpc_code_gen.token.TokenServiceGrpcKt
 import io.grpc.ManagedChannel
-import io.grpc.ManagedChannelBuilder
 import unilang.alias.i64
-import java.util.Date
-import java.util.Optional
+import unilang.type.none
+import unilang.type.some
+import java.util.*
 
 class TokenService(
     channel: ManagedChannel
@@ -26,14 +25,14 @@ class TokenService(
         val rsp = stub.getOne(req)
 
         return if (rsp.ok)
-            Optional.of(rsp.value)
+            rsp.value.some()
         else
-            Optional.empty()
+            none()
     }
 }
 
 object TokenServiceSingleton {
-    private var tokenService: Optional<TokenService> = Optional.empty()
+    private var tokenService: Optional<TokenService> = none()
 
     private var tokenGetTime = Date()
     private var token = Optional.empty<String>()
@@ -49,7 +48,7 @@ object TokenServiceSingleton {
             val channel = ChannelSingleton.getChannel(ctx).get()
 
             if (tokenService.isEmpty)
-                tokenService = Optional.of(TokenService(channel))
+                tokenService = TokenService(channel).some()
 
             if (token.isEmpty || Date().time - tokenGetTime.time > 8 * oneMinute) {
                 token =
@@ -63,6 +62,6 @@ object TokenServiceSingleton {
 
             token
         }
-        return token.getOrElse { Optional.empty() }
+        return token.getOrElse { none() }
     }
 }

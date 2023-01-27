@@ -18,13 +18,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import component.dialog.PostDiffDialog
-import data.db.LocalCommentDatabase
 import data.db.LocalPostDatabase
 import data.ui.PostData
-import kotlinx.coroutines.launch
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
 import unilang.alias.*
+import unilang.type.notNullThen
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -53,8 +52,7 @@ fun PostCard(
     val ctx = LocalContext.current
     fun ifExistLocalThenEdit() {
         val localPostDao = LocalPostDatabase.getDatabase(ctx).localPostDao()
-        if (localPostDao.maybe(data.id) != null)
-            navToEdit()
+        localPostDao.maybe(data.id).notNullThen { navToEdit() }
     }
 
     Card(
@@ -109,7 +107,7 @@ fun PostCard(
                     {
                         Text(
                             text = data.title,
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Row {
@@ -129,7 +127,7 @@ fun PostCard(
                 }
                 Text(
                     text = data.body,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 10.dp),
                     maxLines = 2,

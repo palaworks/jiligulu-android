@@ -19,7 +19,7 @@ import data.ui.sha256
 import ui.FillMaxSizeModifier
 import ui.rememberMutStateOf
 import unilang.alias.i64
-import unilang.type.some
+import unilang.type.copyUnless
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -47,17 +47,17 @@ fun CommentScreen(
         val conflict = localCommentList
             .fold(mutableListOf<CommentData>()) { acc, localComment ->
                 acc.apply {
-                    val localSha256 = CommentData(localComment).sha256()
+                    val localSha256 = localComment.sha256()
                     val remoteSha256 = remoteIdSha256Map[localComment.id]
 
                     if (remoteSha256 == null)
-                        acc.add(CommentData(localComment))//local only comment
+                        acc.add(localComment)//local only comment
                     else {
                         remoteIdSha256Map.remove(localComment.id)
                         if (remoteSha256 == localSha256)
-                            resolved.add(CommentData(localComment))//resolved
+                            resolved.add(localComment)//resolved
                         else
-                            acc.add(CommentData(localComment))//conflict
+                            acc.add(localComment)//conflict
                     }
                 }
             } + remoteIdSha256Map.keys
@@ -85,20 +85,16 @@ fun CommentScreen(
                     {
                         navToCommentEditor(id)
                     },
-                    { navToCreateComment(id) },
+                    {
+                        navToCreateComment(id)
+                    },
                     data,
                     conflictCommentList.any { it.id == id },
                     {
-                        val newList = conflictCommentList
-                            .toMutableList()
-                            .apply { this.removeIf { it.id == id } }
-                        conflictCommentList = newList
+                        conflictCommentList = conflictCommentList.copyUnless { it.id == id }
                     },
                     {
-                        val newList = conflictCommentList
-                            .toMutableList()
-                            .apply { this.removeIf { it.id == id } }
-                        conflictCommentList = newList
+                        conflictCommentList = conflictCommentList.copyUnless { it.id == id }
                     },
                 )
             }

@@ -1,4 +1,4 @@
-package component
+package component.editor
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -19,11 +19,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import data.db.LocalComment
-import data.db.LocalCommentDatabase
-import data.grpc.CommentServiceSingleton
+import data.db.LocalPostDatabase
+import data.grpc.PostServiceSingleton
 import kotlinx.coroutines.launch
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
@@ -32,17 +30,19 @@ import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
-fun CommentEditor(
+fun PostEditor(
     bodyFocusRequester: FocusRequester,
     id: Optional<i64>,
-    bindingId: Optional<i64>,
-    isReply: Optional<Boolean>,
-    afterSave: (String) -> Unit
+    afterSave: (String, String) -> Unit
 ) {
     val ctx = LocalContext.current
-    val localCommentDao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
-    val old = localCommentDao.maybe(id.get())
+    val localPostDao = LocalPostDatabase.getDatabase(ctx).localPostDao()
+    val old = localPostDao.maybe(id.get())
 
+    var titleText by rememberMutStateOf(
+        if (id.isPresent) old!!.title
+        else ""
+    )
     var bodyText by rememberMutStateOf(
         if (id.isPresent) old!!.body
         else ""
@@ -51,8 +51,9 @@ fun CommentEditor(
     val scope = rememberCoroutineScope()
 
     fun update() = scope.launch {
-        localCommentDao.update(
+        localPostDao.update(
             old!!.copy(
+                title = titleText,
                 body = bodyText,
                 modifyTime = Date()
             )
@@ -60,19 +61,10 @@ fun CommentEditor(
     }
 
     fun create() = scope.launch {
-        val commentService = CommentServiceSingleton.getService(ctx).get()
-        val created = commentService.create(bodyText, bindingId.get(), isReply.get()).get()
+        val commentService = PostServiceSingleton.getService(ctx).get()
+        val created = commentService.create(titleText, bodyText).get()
 
-        localCommentDao.insert(
-            LocalComment(
-                created.id,
-                created.body,
-                created.bindingId,
-                created.isReply,
-                created.createTime,
-                created.modifyTime,
-            )
-        )
+        localPostDao.insert(created)
     }
 
     Column {
@@ -84,7 +76,7 @@ fun CommentEditor(
                 Icon(
                     imageVector = Icons.Default.Numbers,
                     tint = MaterialTheme.colorScheme.outlineVariant,
-                    contentDescription = "Comment id",
+                    contentDescription = "Post id",
                 )
                 Text(
                     text = id.map { it.toString() }.orElse("New"),
@@ -101,7 +93,7 @@ fun CommentEditor(
                     else
                         create()
 
-                    afterSave(bodyText)
+                    afterSave(titleText, bodyText)
                 }
             ) {
                 Text("Save")
@@ -110,15 +102,31 @@ fun CommentEditor(
 
         BasicTextField(
             modifier = FillMaxWidthModifier
-                .padding(top = 10.dp)
+                .padding(vertical = 10.dp),
+            value = titleText,
+            textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onBackground),
+            decorationBox = { innerTextField ->
+                if (titleText.isEmpty())
+                    Text(
+                        text = "Title",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                innerTextField()
+            },
+            onValueChange = { titleText = it }
+        )
+
+        BasicTextField(
+            modifier = FillMaxWidthModifier
                 .focusRequester(bodyFocusRequester),
             value = bodyText,
-            textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onBackground),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
             decorationBox = { innerTextField ->
                 if (bodyText.isEmpty())
                     Text(
                         text = "Body",
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.outline
                     )
                 innerTextField()

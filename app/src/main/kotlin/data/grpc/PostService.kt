@@ -9,6 +9,8 @@ import io.grpc.ManagedChannel
 import unilang.alias.i64
 import unilang.time.Iso8601
 import unilang.time.toDate
+import unilang.type.none
+import unilang.type.some
 import java.util.*
 
 class PostService(
@@ -36,7 +38,7 @@ class PostService(
                 )
             )
         else
-            Optional.empty()
+            none()
     }
 
     suspend fun getAll(): List<PostData> {
@@ -91,7 +93,7 @@ class PostService(
                 )
             )
         else
-            Optional.empty()
+            none()
     }
 
     suspend fun delete(id: i64): Boolean {
@@ -126,12 +128,12 @@ class PostService(
                 )
             )
         else
-            Optional.empty()
+            none()
     }
 }
 
 object PostServiceSingleton {
-    private var postService: Optional<PostService> = Optional.empty()
+    private var postService: Optional<PostService> = none()
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun getService(ctx: Context): Optional<PostService> {
@@ -140,7 +142,7 @@ object PostServiceSingleton {
                 val channel = ChannelSingleton.getChannel(ctx).get()
                 val getToken = suspend { TokenServiceSingleton.getOne(ctx).get() }
 
-                postService = Optional.of(PostService(channel, getToken))
+                postService = PostService(channel, getToken).some()
             }
 
         return postService

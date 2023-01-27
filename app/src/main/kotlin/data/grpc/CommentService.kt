@@ -9,6 +9,8 @@ import io.grpc.ManagedChannel
 import unilang.alias.i64
 import unilang.time.Iso8601
 import unilang.time.toDate
+import unilang.type.none
+import unilang.type.some
 import java.util.*
 
 class CommentService(
@@ -26,17 +28,15 @@ class CommentService(
         val rsp = stub.getOne(req)
 
         return if (rsp.ok) {
-            Optional.of(
-                CommentData(
-                    id = rsp.data.id,
-                    body = rsp.data.body,
-                    bindingId = rsp.data.bindingId,
-                    isReply = rsp.data.isReply,
-                    createTime = Iso8601(rsp.data.createTime).toDate(),
-                    modifyTime = Iso8601(rsp.data.modifyTime).toDate(),
-                )
-            )
-        } else Optional.empty()
+            CommentData(
+                id = rsp.data.id,
+                body = rsp.data.body,
+                bindingId = rsp.data.bindingId,
+                isReply = rsp.data.isReply,
+                createTime = Iso8601(rsp.data.createTime).toDate(),
+                modifyTime = Iso8601(rsp.data.modifyTime).toDate(),
+            ).some()
+        } else none()
     }
 
     suspend fun getAll(): List<CommentData> {
@@ -84,18 +84,16 @@ class CommentService(
         val rsp = stub.create(req)
 
         return if (rsp.ok)
-            Optional.of(
-                CommentData(
-                    rsp.data.id,
-                    rsp.data.body,
-                    rsp.data.bindingId,
-                    rsp.data.isReply,
-                    Iso8601(rsp.data.createTime).toDate(),
-                    Iso8601(rsp.data.modifyTime).toDate()
-                )
-            )
+            CommentData(
+                rsp.data.id,
+                rsp.data.body,
+                rsp.data.bindingId,
+                rsp.data.isReply,
+                Iso8601(rsp.data.createTime).toDate(),
+                Iso8601(rsp.data.modifyTime).toDate()
+            ).some()
         else
-            Optional.empty()
+            none()
     }
 
     suspend fun delete(id: i64): Boolean {
@@ -119,23 +117,21 @@ class CommentService(
         val rsp = stub.update(req)
 
         return if (rsp.ok)
-            Optional.of(
-                CommentData(
-                    rsp.data.id,
-                    rsp.data.body,
-                    rsp.data.bindingId,
-                    rsp.data.isReply,
-                    Iso8601(rsp.data.createTime).toDate(),
-                    Iso8601(rsp.data.modifyTime).toDate()
-                )
-            )
+            CommentData(
+                rsp.data.id,
+                rsp.data.body,
+                rsp.data.bindingId,
+                rsp.data.isReply,
+                Iso8601(rsp.data.createTime).toDate(),
+                Iso8601(rsp.data.modifyTime).toDate()
+            ).some()
         else
-            Optional.empty()
+            none()
     }
 }
 
 object CommentServiceSingleton {
-    private var commentService: Optional<CommentService> = Optional.empty()
+    private var commentService: Optional<CommentService> = none()
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun getService(ctx: Context): Optional<CommentService> {
@@ -144,7 +140,7 @@ object CommentServiceSingleton {
                 val channel = ChannelSingleton.getChannel(ctx).get()
                 val getToken = suspend { TokenServiceSingleton.getOne(ctx).get() }
 
-                commentService = Optional.of(CommentService(channel, getToken))
+                commentService = CommentService(channel, getToken).some()
             }
 
         return commentService

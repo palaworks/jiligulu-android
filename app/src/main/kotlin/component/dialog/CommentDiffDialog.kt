@@ -14,6 +14,9 @@ import data.ui.CommentData
 import kotlinx.coroutines.launch
 import ui.rememberMutStateOf
 import unilang.alias.i64
+import unilang.type.none
+import unilang.type.optional
+import unilang.type.some
 import java.util.*
 
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -26,13 +29,8 @@ fun CommentDiffDialog(
     afterApplyRemote: () -> Unit
 ) {
     //TODO async fetch
-    val localData =
-        LocalCommentDatabase.getDatabase(LocalContext.current).localCommentDao().maybe(id)
-
-    val localComment = if (localData == null)
-        Optional.empty()
-    else
-        Optional.of(CommentData(localData))
+    val localComment =
+        LocalCommentDatabase.getDatabase(LocalContext.current).localCommentDao().maybe(id).optional()
 
     var remoteComment by rememberMutStateOf(Optional.empty<CommentData>())
     val ctx = LocalContext.current

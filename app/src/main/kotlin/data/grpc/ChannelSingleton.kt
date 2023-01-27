@@ -6,10 +6,11 @@ import androidx.annotation.RequiresApi
 import data.db.AppSettingDatabase
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
+import unilang.type.none
 import java.util.*
 
 object ChannelSingleton {
-    private var channel: Optional<ManagedChannel> = Optional.empty()
+    private var channel: Optional<ManagedChannel> = none()
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     fun getChannel(ctx: Context): Optional<ManagedChannel> {

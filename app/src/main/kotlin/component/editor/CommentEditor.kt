@@ -1,4 +1,4 @@
-package component
+package component.editor
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -20,9 +20,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import data.db.LocalPost
-import data.db.LocalPostDatabase
-import data.grpc.PostServiceSingleton
+import data.db.LocalCommentDatabase
+import data.grpc.CommentServiceSingleton
 import kotlinx.coroutines.launch
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
@@ -31,19 +30,17 @@ import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
-fun PostEditor(
+fun CommentEditor(
     bodyFocusRequester: FocusRequester,
     id: Optional<i64>,
-    afterSave: (String, String) -> Unit
+    bindingId: Optional<i64>,
+    isReply: Optional<Boolean>,
+    afterSave: (String) -> Unit
 ) {
     val ctx = LocalContext.current
-    val localPostDao = LocalPostDatabase.getDatabase(ctx).localPostDao()
-    val old = localPostDao.maybe(id.get())
+    val localCommentDao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+    val old = localCommentDao.maybe(id.get())
 
-    var titleText by rememberMutStateOf(
-        if (id.isPresent) old!!.title
-        else ""
-    )
     var bodyText by rememberMutStateOf(
         if (id.isPresent) old!!.body
         else ""
@@ -52,9 +49,8 @@ fun PostEditor(
     val scope = rememberCoroutineScope()
 
     fun update() = scope.launch {
-        localPostDao.update(
+        localCommentDao.update(
             old!!.copy(
-                title = titleText,
                 body = bodyText,
                 modifyTime = Date()
             )
@@ -62,18 +58,10 @@ fun PostEditor(
     }
 
     fun create() = scope.launch {
-        val commentService = PostServiceSingleton.getService(ctx).get()
-        val created = commentService.create(titleText, bodyText).get()
+        val commentService = CommentServiceSingleton.getService(ctx).get()
+        val created = commentService.create(bodyText, bindingId.get(), isReply.get()).get()
 
-        localPostDao.insert(
-            LocalPost(
-                created.id,
-                created.title,
-                created.body,
-                created.createTime,
-                created.modifyTime,
-            )
-        )
+        localCommentDao.insert(created)
     }
 
     Column {
@@ -85,7 +73,7 @@ fun PostEditor(
                 Icon(
                     imageVector = Icons.Default.Numbers,
                     tint = MaterialTheme.colorScheme.outlineVariant,
-                    contentDescription = "Post id",
+                    contentDescription = "Comment id",
                 )
                 Text(
                     text = id.map { it.toString() }.orElse("New"),
@@ -102,7 +90,7 @@ fun PostEditor(
                     else
                         create()
 
-                    afterSave(titleText, bodyText)
+                    afterSave(bodyText)
                 }
             ) {
                 Text("Save")
@@ -111,31 +99,15 @@ fun PostEditor(
 
         BasicTextField(
             modifier = FillMaxWidthModifier
-                .padding(vertical = 10.dp),
-            value = titleText,
-            textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onBackground),
-            decorationBox = { innerTextField ->
-                if (titleText.isEmpty())
-                    Text(
-                        text = "Title",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                innerTextField()
-            },
-            onValueChange = { titleText = it }
-        )
-
-        BasicTextField(
-            modifier = FillMaxWidthModifier
+                .padding(top = 10.dp)
                 .focusRequester(bodyFocusRequester),
             value = bodyText,
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
+            textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onBackground),
             decorationBox = { innerTextField ->
                 if (bodyText.isEmpty())
                     Text(
                         text = "Body",
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.outline
                     )
                 innerTextField()

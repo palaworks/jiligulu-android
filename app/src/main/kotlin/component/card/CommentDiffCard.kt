@@ -18,14 +18,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import data.db.LocalComment
 import data.db.LocalCommentDatabase
 import data.grpc.CommentServiceSingleton
 import data.ui.CommentData
 import data.ui.sha256
 import kotlinx.coroutines.launch
 import ui.FillMaxWidthModifier
-import java.text.SimpleDateFormat
+import unilang.time.format
+import unilang.time.yyMdHmm
+import unilang.type.none
+import unilang.type.some
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -37,10 +39,7 @@ fun CommentDiffCard(
     afterApplyLocal: () -> Unit,
     afterApplyRemote: () -> Unit,
 ) {
-    val fmt = SimpleDateFormat("yy-M-d h:mm")
-    Column(
-        FillMaxWidthModifier
-    ) {
+    Column(FillMaxWidthModifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Default.Numbers,
@@ -148,7 +147,7 @@ fun CommentDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = localComment.map { fmt.format(it.createTime) }.orElse("-"),
+                    text = localComment.map { it.modifyTime.format(yyMdHmm) }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
                 )
@@ -161,7 +160,7 @@ fun CommentDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = remoteComment.map { fmt.format(it.createTime) }.orElse("-"),
+                    text = remoteComment.map { it.modifyTime.format(yyMdHmm) }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
                 )
@@ -198,16 +197,7 @@ fun CommentDiffCard(
                 //TODO handle err
                 if (localComment.isEmpty) {
                     val comment = remoteComment.get()
-                    localCommentDao.insert(
-                        LocalComment(
-                            comment.id,
-                            comment.body,
-                            comment.bindingId,
-                            comment.isReply,
-                            comment.createTime,
-                            comment.modifyTime,
-                        )
-                    )
+                    localCommentDao.insert(comment)
                 } else if (remoteComment.isEmpty)
                     localCommentDao.delete(localComment.get().id)
                 else {
@@ -299,16 +289,15 @@ fun CommentDiffCardPreview() {
         Date()
     )
     Column {
-        //CommentDiffCard(Optional.of(localComment), Optional.of(remoteComment))
         CommentDiffCard(
-            Optional.of(localComment),
-            Optional.empty(),
+            localComment.some(),
+            none(),
             afterApplyLocal = {},
             afterApplyRemote = {}
         )
         CommentDiffCard(
-            Optional.empty(),
-            Optional.of(remoteComment),
+            none(),
+            remoteComment.some(),
             afterApplyLocal = {},
             afterApplyRemote = {}
         )

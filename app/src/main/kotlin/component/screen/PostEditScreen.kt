@@ -1,24 +1,23 @@
 package component.screen
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.ripple.LocalRippleTheme
-import androidx.compose.material.ripple.RippleAlpha
-import androidx.compose.material.ripple.RippleTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import component.PostEditor
+import component.NoRipple
+import component.editor.PostEditor
 import ui.FillMaxSizeModifier
 import unilang.alias.i64
 import java.util.*
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun PostEditScreen(
     contentPadding: PaddingValues,
@@ -41,19 +40,7 @@ fun PostEditScreen(
                 PostEditor(fr, id) { _, _ -> }
             }
 
-            CompositionLocalProvider(
-                LocalRippleTheme provides object : RippleTheme {
-                    @Composable
-                    override fun defaultColor(): Color = Color.Transparent
-
-                    @Composable
-                    override fun rippleAlpha() = RippleAlpha(
-                        draggedAlpha = 0.0f,
-                        focusedAlpha = 0.0f,
-                        hoveredAlpha = 0.0f,
-                        pressedAlpha = 0.0f,
-                    )
-                }) {
+            NoRipple {
                 Column {
                     Spacer(modifier = FillMaxSizeModifier
                         .clickable { fr.requestFocus() })

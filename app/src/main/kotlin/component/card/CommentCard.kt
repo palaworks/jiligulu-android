@@ -21,10 +21,10 @@ import androidx.compose.ui.unit.dp
 import component.dialog.CommentDiffDialog
 import data.db.LocalCommentDatabase
 import data.ui.CommentData
-import kotlinx.coroutines.launch
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
 import unilang.alias.*
+import unilang.type.notNullThen
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -53,8 +53,7 @@ fun CommentCard(
     val ctx = LocalContext.current
     fun ifExistLocalThenEdit() {
         val localCommentDao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
-        if (localCommentDao.maybe(data.id) != null)
-            navToEdit()
+        localCommentDao.maybe(data.id).notNullThen { navToEdit() }
     }
 
     Card(
@@ -102,7 +101,7 @@ fun CommentCard(
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
                     text = data.body,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.bodyLarge,
                     maxLines = 2,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     overflow = TextOverflow.Ellipsis,
