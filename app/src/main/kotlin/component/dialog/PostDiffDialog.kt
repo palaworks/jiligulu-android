@@ -60,8 +60,14 @@ fun PostDiffDialog(
                 PostDiffCard(
                     localPost,
                     remotePost,
-                    afterApplyLocal,
-                    afterApplyRemote
+                    {
+                        afterApplyLocal()
+                        onDismissRequest()
+                    },
+                    {
+                        afterApplyRemote()
+                        onDismissRequest()
+                    }
                 )
             },
             onDismissRequest = onDismissRequest,

@@ -59,8 +59,14 @@ fun CommentDiffDialog(
                 CommentDiffCard(
                     localComment,
                     remoteComment,
-                    afterApplyLocal,
-                    afterApplyRemote
+                    {
+                        afterApplyLocal()
+                        onDismissRequest()
+                    },
+                    {
+                        afterApplyRemote()
+                        onDismissRequest()
+                    }
                 )
             },
             onDismissRequest = onDismissRequest,
