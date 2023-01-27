@@ -19,6 +19,7 @@ import data.ui.sha256
 import ui.FillMaxSizeModifier
 import ui.rememberMutStateOf
 import unilang.alias.i64
+import unilang.type.some
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -48,6 +49,7 @@ fun CommentScreen(
                 acc.apply {
                     val localSha256 = CommentData(localComment).sha256()
                     val remoteSha256 = remoteIdSha256Map[localComment.id]
+
                     if (remoteSha256 == null)
                         acc.add(CommentData(localComment))//local only comment
                     else {
@@ -80,12 +82,24 @@ fun CommentScreen(
             itemRender = { data ->
                 val id = data.id
                 CommentCard(
-                    { navToCommentEditor(id) },
+                    {
+                        navToCommentEditor(id)
+                    },
                     { navToCreateComment(id) },
                     data,
                     conflictCommentList.any { it.id == id },
-                    {},
-                    {},
+                    {
+                        val newList = conflictCommentList
+                            .toMutableList()
+                            .apply { this.removeIf { it.id == id } }
+                        conflictCommentList = newList
+                    },
+                    {
+                        val newList = conflictCommentList
+                            .toMutableList()
+                            .apply { this.removeIf { it.id == id } }
+                        conflictCommentList = newList
+                    },
                 )
             }
         )

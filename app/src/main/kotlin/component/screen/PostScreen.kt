@@ -80,12 +80,22 @@ fun PostScreen(
             itemRender = { data ->
                 val id = data.id
                 PostCard(
-                    { navToPostEditor(id) },
+                    {
+                        navToPostEditor(id)
+                    },
                     { navToCreateComment(id) },
                     data,
                     conflictPostList.any { it.id == id },
-                    {},
-                    {},
+                    {
+                        conflictPostList = conflictPostList
+                            .toMutableList()
+                            .apply { this.removeIf { it.id == id } }
+                    },
+                    {
+                        conflictPostList = conflictPostList
+                            .toMutableList()
+                            .apply { this.removeIf { it.id == id } }
+                    },
                 )
             }
         )
