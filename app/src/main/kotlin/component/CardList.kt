@@ -21,37 +21,36 @@ import ui.rememberMutStateOf
 import java.util.*
 
 @OptIn(ExperimentalMaterialApi::class)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "CoroutineCreationDuringComposition")
 @Composable
 fun <T> CardList(
-    itemFetcher: suspend () -> List<T>,
-    itemRender: @Composable (T) -> Unit,
+    data: List<T>,
+    onRefresh: suspend () -> Unit,
+    render: @Composable (T) -> Unit,
 ) {
-    var itemList by rememberMutStateOf(emptyList<T>())
-
     val refreshScope = rememberCoroutineScope()
     var refreshing by rememberMutStateOf(false)
 
     fun refresh() = refreshScope.launch {
         refreshing = true
-        itemList = itemFetcher()
+        onRefresh()
         delay(500)
         refreshing = false
     }
 
     val state = rememberPullRefreshState(refreshing, ::refresh)
 
-    Box(
-        FillMaxSizeModifier
-            .pullRefresh(state)
-    ) {
-        if (itemList.isEmpty())
+    if (data.isEmpty())
+        refresh()
+
+    Box(FillMaxSizeModifier.pullRefresh(state)) {
+        if (data.isEmpty())
             TryPullDownInfo()
         else {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 Spacer(modifier = Modifier.height(10.dp))
-                itemList.forEach {
-                    itemRender(it)
+                data.forEach {
+                    render(it)
                     Spacer(modifier = Modifier.height(10.dp))
                 }
             }
