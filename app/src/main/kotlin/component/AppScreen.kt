@@ -8,8 +8,10 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -20,6 +22,8 @@ import component.screen.*
 import global.AppRoute
 import global.bottomNavBarItems
 import ui.rememberMutStateOf
+import ui.state.CommentScreenViewModel
+import ui.state.PostScreenViewModel
 import unilang.alias.*
 import unilang.type.none
 import unilang.type.some
@@ -40,6 +44,19 @@ fun AppScreen() {
         entry.arguments!!.getLong("id")
     }
 
+    val commentScreenViewModel = CommentScreenViewModel()
+    val postScreenViewModel = PostScreenViewModel()
+
+    fun navTo(dest: String) {
+        navController.navigate(dest) {
+            popUpTo(navController.graph.findStartDestination().id) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
     Scaffold(
         modifier = Modifier,
         floatingActionButton = {
@@ -47,7 +64,7 @@ fun AppScreen() {
                 when (it.route) {
                     AppRoute.POST_LIST -> {
                         CreateButton {
-                            navController.navigate(AppRoute.CREATE_POST)
+                            navTo(AppRoute.CREATE_POST)
                         }
                         true
                     }
@@ -60,7 +77,7 @@ fun AppScreen() {
         },
         bottomBar = {
             BottomNavBar(navController, bottomNavBarItems) {
-                navController.navigate(it)
+                navTo(it)
             }
         }
     ) { contentPadding ->
@@ -74,11 +91,12 @@ fun AppScreen() {
 
                 PostScreen(
                     contentPadding = contentPadding,
+                    postScreenViewModel,
                     navToPostEditor = { id: i64 ->
-                        navController.navigate("${AppRoute.MODIFY_POST}/$id")
+                        navTo("${AppRoute.MODIFY_POST}/$id")
                     },
                     navToCreateComment = { bindingId: i64 ->
-                        navController.navigate("${AppRoute.CREATE_COMMENT}/$bindingId-false")
+                        navTo("${AppRoute.CREATE_COMMENT}/$bindingId-false")
                     }
                 )
             }
@@ -102,11 +120,12 @@ fun AppScreen() {
 
                 CommentScreen(
                     contentPadding = contentPadding,
+                    viewModel = commentScreenViewModel,
                     navToCommentEditor = { id: i64 ->
-                        navController.navigate("${AppRoute.MODIFY_COMMENT}/$id")
+                        navTo("${AppRoute.MODIFY_COMMENT}/$id")
                     },
                     navToCreateComment = { bindingId: i64 ->
-                        navController.navigate("${AppRoute.CREATE_COMMENT}/$bindingId-true")
+                        navTo("${AppRoute.CREATE_COMMENT}/$bindingId-true")
                     }
                 )
             }
