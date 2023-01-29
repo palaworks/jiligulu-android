@@ -37,34 +37,31 @@ fun CommentListScreen(
     val uiState by viewModel.state.collectAsState()
 
     suspend fun load() = withContext(Dispatchers.IO) {
-        val localCommentDao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
-        val commentService = CommentServiceSingleton.getService(ctx).get()
+        val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+        val service = CommentServiceSingleton.getService(ctx).get()
 
-        val remoteIdSha256Map = commentService.getAllSha256()
-        val localCommentList = localCommentDao.getAll()
+        val remoteIdSha256Map = service.getAllSha256()
+        val localList = dao.getAll()
 
         val resolved = mutableListOf<CommentData>()
 
-        val conflict = localCommentList
-            .fold(mutableListOf<CommentData>()) { acc, localComment ->
+        val conflict = localList
+            .fold(mutableListOf<CommentData>()) { acc, comment ->
                 acc.apply {
-                    val localSha256 = localComment.sha256()
-                    val remoteSha256 = remoteIdSha256Map[localComment.id]
+                    val localSha256 = comment.sha256()
+                    val remoteSha256 = remoteIdSha256Map[comment.id]
 
                     if (remoteSha256 == null)
-                        acc.add(localComment)//local only comment
+                        acc.add(comment)//local only comment
                     else {
-                        remoteIdSha256Map.remove(localComment.id)
+                        remoteIdSha256Map.remove(comment.id)
                         if (remoteSha256 == localSha256)
-                            resolved.add(localComment)//resolved
+                            resolved.add(comment)//resolved
                         else
-                            acc.add(localComment)//conflict
+                            acc.add(comment)//conflict
                     }
                 }
-            } + remoteIdSha256Map.keys
-            .map {
-                commentService.getOne(it).get()//add remote only comment
-            }
+            } + service.getSome(remoteIdSha256Map.keys.toList())//add remote only comment
 
         viewModel.reset((conflict + resolved).sortedBy { it.id }, conflict)
     }

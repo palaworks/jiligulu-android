@@ -38,33 +38,30 @@ fun PostListScreen(
     val uiState by viewModel.state.collectAsState()
 
     suspend fun load() = withContext(Dispatchers.IO) {
-        val localPostDao = LocalPostDatabase.getDatabase(ctx).localPostDao()
-        val postService = PostServiceSingleton.getService(ctx).get()
+        val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
+        val service = PostServiceSingleton.getService(ctx).get()
 
-        val remoteIdSha256Map = postService.getAllSha256()
-        val localPostList = localPostDao.getAll()
+        val remoteIdSha256Map = service.getAllSha256()
+        val localList = dao.getAll()
 
         val resolved = mutableListOf<PostData>()
 
-        val conflict = localPostList
-            .fold(mutableListOf<PostData>()) { acc, localPost ->
+        val conflict = localList
+            .fold(mutableListOf<PostData>()) { acc, post ->
                 acc.apply {
-                    val localSha256 = localPost.sha256()
-                    val remoteSha256 = remoteIdSha256Map[localPost.id]
+                    val localSha256 = post.sha256()
+                    val remoteSha256 = remoteIdSha256Map[post.id]
                     if (remoteSha256 == null)
-                        acc.add(localPost)//local only post
+                        acc.add(post)//local only post
                     else {
-                        remoteIdSha256Map.remove(localPost.id)
+                        remoteIdSha256Map.remove(post.id)
                         if (remoteSha256 == localSha256)
-                            resolved.add(localPost)//resolved
+                            resolved.add(post)//resolved
                         else
-                            acc.add(localPost)//conflict
+                            acc.add(post)//conflict
                     }
                 }
-            } + remoteIdSha256Map.keys
-            .map {
-                postService.getOne(it).get()//add remote only post
-            }
+            } + service.getSome(remoteIdSha256Map.keys.toList())//add remote only post
 
         viewModel.reset((conflict + resolved).sortedBy { it.id }, conflict)
     }

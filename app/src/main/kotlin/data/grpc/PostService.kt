@@ -42,6 +42,26 @@ class PostService(
                 none()
         }
 
+    suspend fun getSome(idList: List<i64>) =
+        withContext(Dispatchers.IO) {
+            val req = grpc_code_gen.post.get_some.req {
+                this.token = getToken()
+                this.idList.addAll(idList)
+            }
+
+            val rsp = stub.getSome(req)
+
+            rsp.dataListList.map {
+                PostData(
+                    it.id,
+                    it.title,
+                    it.body,
+                    Iso8601(it.createTime).toDate(),
+                    Iso8601(it.modifyTime).toDate()
+                )
+            }
+        }
+
     suspend fun getAll() =
         withContext(Dispatchers.IO) {
             val req = grpc_code_gen.post.get_all.req {
@@ -50,7 +70,7 @@ class PostService(
 
             val rsp = stub.getAll(req)
 
-            rsp.collectionList.map {
+            rsp.dataListList.map {
                 PostData(
                     it.id,
                     it.title,
@@ -70,7 +90,7 @@ class PostService(
             val rsp = stub.getAllSha256(req)
 
             HashMap<i64, String>().apply {
-                rsp.collectionList.forEach {
+                rsp.dataListList.forEach {
                     this[it.id] = it.sha256
                 }
             }
@@ -121,16 +141,7 @@ class PostService(
 
             val rsp = stub.update(req)
 
-            if (rsp.ok)
-                PostData(
-                    rsp.data.id,
-                    rsp.data.title,
-                    rsp.data.body,
-                    Iso8601(rsp.data.createTime).toDate(),
-                    Iso8601(rsp.data.modifyTime).toDate()
-                ).some()
-            else
-                none()
+            rsp.ok
         }
 
     suspend fun create(data: PostData) = create(data.title, data.body)

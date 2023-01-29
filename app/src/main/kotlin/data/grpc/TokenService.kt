@@ -25,7 +25,7 @@ class TokenService(
         val rsp = stub.getOne(req)
 
         return if (rsp.ok)
-            rsp.value.some()
+            rsp.data.some()
         else
             none()
     }

@@ -44,16 +44,38 @@ class CommentService(
             } else none()
         }
 
+    suspend fun getSome(idList: List<i64>) =
+        withContext(Dispatchers.IO) {
+            val req = grpc_code_gen.comment.get_some.req {
+                this.token = getToken()
+                this.idList.addAll(idList)
+            }
+
+            val rsp = stub.getSome(req)
+
+            //TODO handle err
+            rsp.dataListList.map {
+                CommentData(
+                    it.id,
+                    it.body,
+                    it.bindingId,
+                    it.isReply,
+                    Iso8601(it.createTime).toDate(),
+                    Iso8601(it.modifyTime).toDate()
+                )
+            }
+        }
+
     suspend fun getAll() =
         withContext(Dispatchers.IO) {
             val req = grpc_code_gen.comment.get_all.req {
-                token = getToken()
+                this.token = getToken()
             }
 
             val rsp = stub.getAll(req)
 
             //TODO handle err
-            rsp.collectionList.map {
+            rsp.dataListList.map {
                 CommentData(
                     it.id,
                     it.body,
@@ -74,7 +96,7 @@ class CommentService(
             val rsp = stub.getAllSha256(req)
 
             HashMap<i64, String>().apply {
-                rsp.collectionList.forEach {
+                rsp.dataListList.forEach {
                     this[it.id] = it.sha256
                 }
             }
@@ -126,17 +148,7 @@ class CommentService(
 
             val rsp = stub.update(req)
 
-            if (rsp.ok)
-                CommentData(
-                    rsp.data.id,
-                    rsp.data.body,
-                    rsp.data.bindingId,
-                    rsp.data.isReply,
-                    Iso8601(rsp.data.createTime).toDate(),
-                    Iso8601(rsp.data.modifyTime).toDate()
-                ).some()
-            else
-                none()
+            rsp.ok
         }
 
     suspend fun create(data: CommentData) = create(data.body, data.bindingId, data.isReply)
