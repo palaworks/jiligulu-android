@@ -6,8 +6,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.DownloadForOffline
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -15,30 +14,83 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import data.db.LocalCommentDatabase
 import data.grpc.CommentServiceSingleton
 import data.ui.CommentData
+import data.ui.ConflictType
 import data.ui.sha256
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ui.FillMaxWidthModifier
 import unilang.time.format
 import unilang.time.yyMdHmm
-import unilang.type.none
-import unilang.type.some
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("SimpleDateFormat")
 @Composable
 fun CommentDiffCard(
-    localComment: Optional<CommentData>,
-    remoteComment: Optional<CommentData>,
+    localData: Optional<CommentData>,
+    remoteData: Optional<CommentData>,
     afterApplyLocal: () -> Unit,
     afterApplyRemote: () -> Unit,
 ) {
+    val conflictType = when {
+        localData.isPresent && remoteData.isEmpty -> ConflictType.LocalOnly
+        localData.isEmpty && remoteData.isPresent -> ConflictType.RemoteOnly
+        localData.isPresent && remoteData.isPresent -> ConflictType.DataDiff
+        else -> return
+    }
+
+    val coroutineScope = rememberCoroutineScope()
+    val ctx = LocalContext.current
+
+    suspend fun applyLocal() = withContext(Dispatchers.IO) {
+        val service = CommentServiceSingleton.getService(ctx).get()
+        //TODO handle err
+        when (conflictType) {
+            ConflictType.LocalOnly -> {
+                val data = localData.get()
+                service.create(
+                    data.body,
+                    data.bindingId,
+                    data.isReply
+                )
+            }
+            ConflictType.RemoteOnly -> {
+                service.delete(remoteData.get().id)
+            }
+            ConflictType.DataDiff -> {
+                val data = localData.get()
+                service.update(
+                    data.id,
+                    data.body
+                )
+            }
+        }
+    }
+
+    suspend fun applyRemote() = withContext(Dispatchers.IO) {
+        val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+        //TODO handle err
+        when (conflictType) {
+            ConflictType.LocalOnly -> {
+                dao.delete(localData.get().id)
+            }
+            ConflictType.RemoteOnly -> {
+                val data = remoteData.get()
+                dao.insert(data)
+            }
+            ConflictType.DataDiff -> {
+                val data = remoteData.get()
+                dao.update(data)
+            }
+        }
+    }
+
     Column(FillMaxWidthModifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
@@ -46,8 +98,8 @@ fun CommentDiffCard(
                 contentDescription = "Comment id"
             )
             Text(
-                text = localComment
-                    .or { remoteComment }
+                text = localData
+                    .or { remoteData }
                     .map { it.id }
                     .orElseThrow()
                     .toString(),
@@ -55,9 +107,10 @@ fun CommentDiffCard(
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(Modifier.height(10.dp))
         Row(
-            modifier = FillMaxWidthModifier, horizontalArrangement = Arrangement.SpaceBetween
+            modifier = FillMaxWidthModifier,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 modifier = Modifier.weight(1f),
@@ -68,9 +121,10 @@ fun CommentDiffCard(
                 text = "Remote data"
             )
         }
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(Modifier.height(10.dp))
         Row(
-            modifier = FillMaxWidthModifier, horizontalArrangement = Arrangement.SpaceBetween
+            modifier = FillMaxWidthModifier,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -80,13 +134,13 @@ fun CommentDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = localComment.map { it.sha256() }.orElse("-"),
+                    text = localData.map { it.sha256() }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.outline
                 )
             }
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Sha256",
@@ -94,13 +148,13 @@ fun CommentDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = remoteComment.map { it.sha256() }.orElse("-"),
+                    text = remoteData.map { it.sha256() }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
                 )
             }
         }
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(Modifier.height(10.dp))
         Row(
             modifier = FillMaxWidthModifier,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -112,14 +166,14 @@ fun CommentDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = localComment.map { it.body }.orElse("-"),
+                    text = localData.map { it.body }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Body",
@@ -127,7 +181,7 @@ fun CommentDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = remoteComment.map { it.body }.orElse("-"),
+                    text = remoteData.map { it.body }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline,
                     maxLines = 3,
@@ -135,7 +189,7 @@ fun CommentDiffCard(
                 )
             }
         }
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(Modifier.height(10.dp))
         Row(
             modifier = FillMaxWidthModifier,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -147,12 +201,12 @@ fun CommentDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = localComment.map { it.modifyTime.format(yyMdHmm) }.orElse("-"),
+                    text = localData.map { it.modifyTime.format(yyMdHmm) }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
                 )
             }
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Modify time",
@@ -160,72 +214,36 @@ fun CommentDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = remoteComment.map { it.modifyTime.format(yyMdHmm) }.orElse("-"),
+                    text = remoteData.map { it.modifyTime.format(yyMdHmm) }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
                 )
             }
         }
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(Modifier.height(10.dp))
         Row(
             modifier = FillMaxWidthModifier,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            val coroutineScope = rememberCoroutineScope()
-            val ctx = LocalContext.current
-
-            fun applyLocal() = coroutineScope.launch {
-                val commentService = CommentServiceSingleton.getService(ctx).get()
-                //TODO handle err
-                if (remoteComment.isEmpty) {
-                    val comment = localComment.get()
-                    commentService.create(comment.body, comment.bindingId, comment.isReply)
-                } else if (localComment.isEmpty)
-                    commentService.delete(remoteComment.get().id)
-                else {
-                    val comment = localComment.get()
-                    commentService.update(
-                        comment.id,
-                        comment.body
-                    )
-                }
-            }
-
-            fun applyRemote() = coroutineScope.launch {
-                val localCommentDao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
-                val commentService = CommentServiceSingleton.getService(ctx).get()
-                //TODO handle err
-                if (localComment.isEmpty) {
-                    val comment = remoteComment.get()
-                    localCommentDao.insert(comment)
-                } else if (remoteComment.isEmpty)
-                    localCommentDao.delete(localComment.get().id)
-                else {
-                    val comment = remoteComment.get()
-                    commentService.update(
-                        comment.id,
-                        comment.body
-                    )
-                }
-            }
             Button(
                 onClick = {
-                    applyLocal()
-                    afterApplyLocal()
+                    coroutineScope.launch {
+                        applyLocal()
+                        afterApplyLocal()
+                    }
                 },
                 contentPadding = PaddingValues(horizontal = 10.dp)
             ) {
-                val (text, icon) =
-                    if (localComment.isEmpty)
-                        Pair(
-                            "Delete Remote",
-                            Icons.Rounded.Delete
-                        )
-                    else
-                        Pair(
-                            "Push Local",
-                            Icons.Rounded.DownloadForOffline
-                        )
+                val (text, icon) = when (conflictType) {
+                    ConflictType.RemoteOnly -> Pair(
+                        "Delete Remote",
+                        Icons.Rounded.Delete
+                    )
+                    else -> Pair(
+                        "Push Local",
+                        Icons.Rounded.FileUpload
+                    )
+                }
                 Icon(
                     modifier = Modifier.size(16.dp),
                     imageVector = icon,
@@ -236,24 +254,25 @@ fun CommentDiffCard(
 
             Button(
                 onClick = {
-                    applyRemote()
-                    afterApplyRemote()
+                    coroutineScope.launch {
+                        applyRemote()
+                        afterApplyRemote()
+                    }
                 },
                 contentPadding = PaddingValues(horizontal = 10.dp)
             ) {
-                val (text, icon) =
-                    if (remoteComment.isEmpty)
-                        Pair(
-                            "Delete Local",
-                            Icons.Rounded.Delete
-                        )
-                    else
-                        Pair(
-                            "Fetch Remote",
-                            Icons.Rounded.DownloadForOffline
-                        )
+                val (text, icon) = when (conflictType) {
+                    ConflictType.LocalOnly -> Pair(
+                        "Delete Remote",
+                        Icons.Rounded.Delete
+                    )
+                    else -> Pair(
+                        "Fetch Remote",
+                        Icons.Rounded.FileDownload
+                    )
+                }
                 Text(text = text, fontSize = 12.sp)
-                Spacer(modifier = Modifier.width(2.dp))
+                Spacer(Modifier.width(2.dp))
                 Icon(
                     modifier = Modifier.size(16.dp),
                     imageVector = icon,
@@ -261,45 +280,5 @@ fun CommentDiffCard(
                 )
             }
         }
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
-@Preview
-@Composable
-fun CommentDiffCardPreview() {
-    val localComment = CommentData(
-        24051968,
-        """Local Body
-          |The quick brown fox jumps over the lazy dog.
-        """.trimMargin(),
-        114514,
-        false,
-        Date(),
-        Date(),
-    )
-    val remoteComment = CommentData(
-        24051968,
-        """Remote Body
-          |The quick brown fox jumps over the lazy dog.
-        """.trimMargin(),
-        114514,
-        true,
-        Date(),
-        Date()
-    )
-    Column {
-        CommentDiffCard(
-            localComment.some(),
-            none(),
-            afterApplyLocal = {},
-            afterApplyRemote = {}
-        )
-        CommentDiffCard(
-            none(),
-            remoteComment.some(),
-            afterApplyLocal = {},
-            afterApplyRemote = {}
-        )
     }
 }

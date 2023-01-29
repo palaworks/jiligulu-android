@@ -18,7 +18,6 @@ import ui.rememberMutStateOf
 import unilang.alias.i64
 import unilang.type.none
 import unilang.type.optional
-import unilang.type.some
 import java.util.*
 
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -30,24 +29,25 @@ fun PostDiffDialog(
     afterApplyLocal: () -> Unit,
     afterApplyRemote: () -> Unit
 ) {
-    var localPost by rememberMutStateOf(none<PostData>())
-    var remotePost by rememberMutStateOf(none<PostData>())
-
     val ctx = LocalContext.current
-
     var loaded by rememberMutStateOf(false)
 
-    rememberCoroutineScope().launch {
+    var localData by rememberMutStateOf(none<PostData>())
+    var remoteData by rememberMutStateOf(none<PostData>())
+
+    val coroutineScope = rememberCoroutineScope()
+    coroutineScope.launch {
         val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
         val service = PostServiceSingleton.getService(ctx).get()
 
-        localPost = dao.maybe(id).optional()
-        remotePost = service.getOne(id)
+        localData = dao.maybe(id).optional()
+        remoteData = service.getOne(id)
 
         loaded = true
     }
 
     if (loaded)
+
         AlertDialog(
             title = {
                 Text(
@@ -58,8 +58,8 @@ fun PostDiffDialog(
             },
             text = {
                 PostDiffCard(
-                    localPost,
-                    remotePost,
+                    localData,
+                    remoteData,
                     {
                         afterApplyLocal()
                         onDismissRequest()

@@ -3,7 +3,9 @@ package component.dialog
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -16,7 +18,6 @@ import ui.rememberMutStateOf
 import unilang.alias.i64
 import unilang.type.none
 import unilang.type.optional
-import unilang.type.some
 import java.util.*
 
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -28,19 +29,19 @@ fun CommentDiffDialog(
     afterApplyLocal: () -> Unit,
     afterApplyRemote: () -> Unit
 ) {
-    var localComment by rememberMutStateOf(none<CommentData>())
-    var remoteComment by rememberMutStateOf(none<CommentData>())
-
     val ctx = LocalContext.current
-
     var loaded by rememberMutStateOf(false)
 
-    rememberCoroutineScope().launch {
+    var localData by rememberMutStateOf(none<CommentData>())
+    var remoteData by rememberMutStateOf(none<CommentData>())
+
+    val coroutineScope = rememberCoroutineScope()
+    coroutineScope.launch {
         val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
         val service = CommentServiceSingleton.getService(ctx).get()
 
-        localComment = dao.maybe(id).optional()
-        remoteComment = service.getOne(id)
+        localData = dao.maybe(id).optional()
+        remoteData = service.getOne(id)
 
         loaded = true
     }
@@ -57,8 +58,8 @@ fun CommentDiffDialog(
             },
             text = {
                 CommentDiffCard(
-                    localComment,
-                    remoteComment,
+                    localData,
+                    remoteData,
                     {
                         afterApplyLocal()
                         onDismissRequest()

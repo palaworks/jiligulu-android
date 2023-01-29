@@ -5,9 +5,8 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Numbers
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.DownloadForOffline
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -15,39 +14,92 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import data.db.LocalPostDatabase
 import data.grpc.PostServiceSingleton
+import data.ui.ConflictType
 import data.ui.PostData
 import data.ui.sha256
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ui.FillMaxWidthModifier
 import unilang.time.format
 import unilang.time.yyMdHmm
-import unilang.type.none
-import unilang.type.some
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-@SuppressLint("SimpleDateFormat", "CoroutineCreationDuringComposition")
+@SuppressLint("SimpleDateFormat")
 @Composable
 fun PostDiffCard(
-    localPost: Optional<PostData>,
-    remotePost: Optional<PostData>,
+    localData: Optional<PostData>,
+    remoteData: Optional<PostData>,
     afterApplyLocal: () -> Unit,
     afterApplyRemote: () -> Unit,
 ) {
+    val conflictType = when {
+        localData.isPresent && remoteData.isEmpty -> ConflictType.LocalOnly
+        localData.isEmpty && remoteData.isPresent -> ConflictType.RemoteOnly
+        localData.isPresent && remoteData.isPresent -> ConflictType.DataDiff
+        else -> return
+    }
+
+    val coroutineScope = rememberCoroutineScope()
+    val ctx = LocalContext.current
+
+    suspend fun applyLocal() = withContext(Dispatchers.IO) {
+        val service = PostServiceSingleton.getService(ctx).get()
+        //TODO handle err
+        when (conflictType) {
+            ConflictType.LocalOnly -> {
+                val data = localData.get()
+                service.create(
+                    data.title,
+                    data.body
+                )
+            }
+            ConflictType.RemoteOnly -> {
+                service.delete(remoteData.get().id)
+            }
+            ConflictType.DataDiff -> {
+                val data = localData.get()
+                service.update(
+                    data.id,
+                    data.title,
+                    data.body
+                )
+            }
+        }
+    }
+
+    suspend fun applyRemote() = withContext(Dispatchers.IO) {
+        val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
+        //TODO handle err
+        when (conflictType) {
+            ConflictType.LocalOnly -> {
+                dao.delete(localData.get().id)
+            }
+            ConflictType.RemoteOnly -> {
+                val data = remoteData.get()
+                dao.insert(data)
+            }
+            ConflictType.DataDiff -> {
+                val data = remoteData.get()
+                dao.update(data)
+            }
+        }
+    }
+
     Column(FillMaxWidthModifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Default.Numbers,
-                contentDescription = "Comment id",
+                contentDescription = "Post id",
             )
             Text(
-                text = localPost
-                    .or { remotePost }
+                text = localData
+                    .or { remoteData }
                     .map { it.id }
                     .orElseThrow()
                     .toString(),
@@ -55,9 +107,10 @@ fun PostDiffCard(
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(Modifier.height(10.dp))
         Row(
-            modifier = FillMaxWidthModifier, horizontalArrangement = Arrangement.SpaceBetween
+            modifier = FillMaxWidthModifier,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 modifier = Modifier.weight(1f),
@@ -68,39 +121,40 @@ fun PostDiffCard(
                 text = "Remote data"
             )
         }
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(Modifier.height(10.dp))
         Row(
-            modifier = FillMaxWidthModifier, horizontalArrangement = Arrangement.SpaceBetween
+            modifier = FillMaxWidthModifier,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Local post sha256",
+                    text = "Sha256",
                     style = MaterialTheme.typography.labelLarge,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = localPost.map { it.sha256() }.orElse("-"),
+                    text = localData.map { it.sha256() }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.outline
                 )
             }
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "remote post sha256",
+                    text = "Sha256",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = remotePost.map { it.sha256() }.orElse("-"),
+                    text = remoteData.map { it.sha256() }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
                 )
             }
         }
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(Modifier.height(10.dp))
         Row(
             modifier = FillMaxWidthModifier,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -112,14 +166,14 @@ fun PostDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = localPost.map { it.title }.orElse("-"),
+                    text = localData.map { it.title }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Title",
@@ -127,7 +181,7 @@ fun PostDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = remotePost.map { it.title }.orElse("-"),
+                    text = remoteData.map { it.title }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline,
                     maxLines = 3,
@@ -135,7 +189,7 @@ fun PostDiffCard(
                 )
             }
         }
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(Modifier.height(10.dp))
         Row(
             modifier = FillMaxWidthModifier,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -147,14 +201,14 @@ fun PostDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = localPost.map { it.body }.orElse("-"),
+                    text = localData.map { it.body }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Body",
@@ -162,7 +216,7 @@ fun PostDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = remotePost.map { it.body }.orElse("-"),
+                    text = remoteData.map { it.body }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline,
                     maxLines = 3,
@@ -170,7 +224,7 @@ fun PostDiffCard(
                 )
             }
         }
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(Modifier.height(10.dp))
         Row(
             modifier = FillMaxWidthModifier,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -182,12 +236,12 @@ fun PostDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = localPost.map { it.modifyTime.format(yyMdHmm) }.orElse("-"),
+                    text = localData.map { it.modifyTime.format(yyMdHmm) }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
                 )
             }
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Modify time",
@@ -195,75 +249,36 @@ fun PostDiffCard(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = remotePost.map { it.modifyTime.format(yyMdHmm) }.orElse("-"),
+                    text = remoteData.map { it.modifyTime.format(yyMdHmm) }.orElse("-"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline
                 )
             }
         }
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(Modifier.height(10.dp))
         Row(
             modifier = FillMaxWidthModifier,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            val coroutineScope = rememberCoroutineScope()
-            val ctx = LocalContext.current
-
-            fun applyLocal() = coroutineScope.launch {
-                val postService = PostServiceSingleton.getService(ctx).get()
-                //TODO handle err
-                if (remotePost.isEmpty) {
-                    val post = localPost.get()
-                    postService.create(post.title, post.body)
-                } else if (localPost.isEmpty)
-                    postService.delete(remotePost.get().id)
-                else {
-                    val post = localPost.get()
-                    postService.update(
-                        post.id,
-                        post.title,
-                        post.body
-                    )
-                }
-            }
-
-            fun applyRemote() = coroutineScope.launch {
-                val localPostDao = LocalPostDatabase.getDatabase(ctx).localPostDao()
-                val postService = PostServiceSingleton.getService(ctx).get()
-                //TODO handle err
-                if (localPost.isEmpty) {
-                    val post = remotePost.get()
-                    localPostDao.insert(post)
-                } else if (remotePost.isEmpty)
-                    localPostDao.delete(localPost.get().id)
-                else {
-                    val post = remotePost.get()
-                    postService.update(
-                        post.id,
-                        post.title,
-                        post.body
-                    )
-                }
-            }
-
             Button(
                 onClick = {
-                    applyLocal()
-                    afterApplyLocal()
+                    coroutineScope.launch {
+                        applyLocal()
+                        afterApplyLocal()
+                    }
                 },
                 contentPadding = PaddingValues(horizontal = 10.dp)
             ) {
-                val (text, icon) =
-                    if (localPost.isEmpty)
-                        Pair(
-                            "Delete Remote",
-                            Icons.Rounded.Delete
-                        )
-                    else
-                        Pair(
-                            "Push Local",
-                            Icons.Rounded.DownloadForOffline
-                        )
+                val (text, icon) = when (conflictType) {
+                    ConflictType.RemoteOnly -> Pair(
+                        "Delete Remote",
+                        Icons.Rounded.Delete
+                    )
+                    else -> Pair(
+                        "Push Local",
+                        Icons.Rounded.FileUpload
+                    )
+                }
                 Icon(
                     modifier = Modifier.size(16.dp),
                     imageVector = icon,
@@ -274,24 +289,25 @@ fun PostDiffCard(
 
             Button(
                 onClick = {
-                    applyRemote()
-                    afterApplyRemote()
+                    coroutineScope.launch {
+                        applyRemote()
+                        afterApplyRemote()
+                    }
                 },
                 contentPadding = PaddingValues(horizontal = 10.dp)
             ) {
-                val (text, icon) =
-                    if (remotePost.isEmpty)
-                        Pair(
-                            "Delete Local",
-                            Icons.Rounded.Delete
-                        )
-                    else
-                        Pair(
-                            "Fetch Remote",
-                            Icons.Rounded.DownloadForOffline
-                        )
+                val (text, icon) = when (conflictType) {
+                    ConflictType.LocalOnly -> Pair(
+                        "Delete Remote",
+                        Icons.Rounded.Delete
+                    )
+                    else -> Pair(
+                        "Fetch Remote",
+                        Icons.Rounded.FileDownload
+                    )
+                }
                 Text(text = text, fontSize = 12.sp)
-                Spacer(modifier = Modifier.width(2.dp))
+                Spacer(Modifier.width(2.dp))
                 Icon(
                     modifier = Modifier.size(16.dp),
                     imageVector = icon,
@@ -299,43 +315,5 @@ fun PostDiffCard(
                 )
             }
         }
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
-@Preview
-@Composable
-fun PostDiffCardPreview() {
-    val localPost = PostData(
-        12384,
-        "Hello world!",
-        """Local Body
-          |The quick brown fox jumps over the lazy dog.
-        """.trimMargin(),
-        Date(),
-        Date(),
-    )
-    val remotePost = PostData(
-        12384,
-        "Hello world!",
-        """Remote Body
-          |The quick brown fox jumps over the lazy dog.
-        """.trimMargin(),
-        Date(),
-        Date(),
-    )
-    Column {
-        PostDiffCard(
-            localPost.some(),
-            none(),
-            afterApplyLocal = {},
-            afterApplyRemote = {}
-        )
-        PostDiffCard(
-            none(),
-            remotePost.some(),
-            afterApplyLocal = {},
-            afterApplyRemote = {}
-        )
     }
 }
