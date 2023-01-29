@@ -20,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ui.FillMaxSizeModifier
 import ui.state.PostScreenViewModel
+import unilang.alias.i32
 import unilang.alias.i64
 import unilang.type.copyUnless
 import java.util.*
@@ -65,7 +66,7 @@ fun PostListScreen(
                 postService.getOne(it).get()//add remote only post
             }
 
-        viewModel.reset(conflict + resolved, conflict)
+        viewModel.reset((conflict + resolved).sortedBy { it.id }, conflict)
     }
 
     Column(

@@ -20,12 +20,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ui.FillMaxSizeModifier
 import ui.state.CommentScreenViewModel
+import unilang.alias.i32
 import unilang.alias.i64
 import unilang.type.copyUnless
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun CommentListScreen(
     contentPadding: PaddingValues,
@@ -66,7 +66,7 @@ fun CommentListScreen(
                 commentService.getOne(it).get()//add remote only comment
             }
 
-        viewModel.reset(conflict + resolved, conflict)
+        viewModel.reset((conflict + resolved).sortedBy { it.id }, conflict)
     }
 
     Column(
@@ -76,9 +76,7 @@ fun CommentListScreen(
     ) {
         CardList(
             uiState.full,
-            onRefresh = {
-                load()
-            },
+            onRefresh = ::load,
             render = { data ->
                 val id = data.id
                 CommentCard(
@@ -100,9 +98,4 @@ fun CommentListScreen(
             }
         )
     }
-}
-
-@Preview
-@Composable
-fun CommentScreenPreview() {
 }

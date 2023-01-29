@@ -76,9 +76,13 @@ fun AppScreen() {
             TopBar(title)
         },
         bottomBar = {
-            BottomNavBar(navController, bottomNavBarItems) {
-                navTo(it)
-            }
+            BottomNavBar(
+                navController,
+                bottomNavBarItems,
+                ::navTo,
+                postScreenViewModel,
+                commentScreenViewModel
+            )
         }
     ) { contentPadding ->
         NavHost(
@@ -126,7 +130,7 @@ fun AppScreen() {
                     },
                     navToCreateComment = { bindingId: i64 ->
                         navTo("${AppRoute.CREATE_COMMENT}/$bindingId-true")
-                    }
+                    },
                 )
             }
             composable(
