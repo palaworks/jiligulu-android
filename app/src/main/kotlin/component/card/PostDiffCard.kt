@@ -52,24 +52,9 @@ fun PostDiffCard(
         val service = PostServiceSingleton.getService(ctx).get()
         //TODO handle err
         when (conflictType) {
-            ConflictType.LocalOnly -> {
-                val data = localData.get()
-                service.create(
-                    data.title,
-                    data.body
-                )
-            }
-            ConflictType.RemoteOnly -> {
-                service.delete(remoteData.get().id)
-            }
-            ConflictType.DataDiff -> {
-                val data = localData.get()
-                service.update(
-                    data.id,
-                    data.title,
-                    data.body
-                )
-            }
+            ConflictType.LocalOnly -> service.create(localData.get())
+            ConflictType.RemoteOnly -> service.delete(remoteData.get())
+            ConflictType.DataDiff -> service.update(localData.get())
         }
     }
 
@@ -81,12 +66,10 @@ fun PostDiffCard(
                 dao.delete(localData.get().id)
             }
             ConflictType.RemoteOnly -> {
-                val data = remoteData.get()
-                dao.insert(data)
+                dao.insert(remoteData.get())
             }
             ConflictType.DataDiff -> {
-                val data = remoteData.get()
-                dao.update(data)
+                dao.update(remoteData.get())
             }
         }
     }

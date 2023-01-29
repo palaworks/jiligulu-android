@@ -13,7 +13,9 @@ import component.card.CommentDiffCard
 import data.db.LocalCommentDatabase
 import data.grpc.CommentServiceSingleton
 import data.ui.CommentData
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ui.rememberMutStateOf
 import unilang.alias.i64
 import unilang.type.none
@@ -30,23 +32,26 @@ fun CommentDiffDialog(
     afterApplyRemote: () -> Unit
 ) {
     val ctx = LocalContext.current
-    var loaded by rememberMutStateOf(false)
+    var initialized by rememberMutStateOf(false)
 
     var localData by rememberMutStateOf(none<CommentData>())
     var remoteData by rememberMutStateOf(none<CommentData>())
 
     val coroutineScope = rememberCoroutineScope()
-    coroutineScope.launch {
+
+    suspend fun initialize() = withContext(Dispatchers.IO) {
         val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
         val service = CommentServiceSingleton.getService(ctx).get()
 
         localData = dao.maybe(id).optional()
         remoteData = service.getOne(id)
 
-        loaded = true
+        initialized = true
     }
 
-    if (loaded)
+    coroutineScope.launch { initialize() }
+
+    if (initialized)
 
         AlertDialog(
             title = {

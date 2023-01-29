@@ -21,7 +21,8 @@ import java.util.*
 @Composable
 fun PostEditScreen(
     contentPadding: PaddingValues,
-    id: Optional<i64>
+    id: Optional<i64>,
+    navBack: () -> Unit
 ) {
     val fr = remember { FocusRequester() }
 
@@ -36,7 +37,8 @@ fun PostEditScreen(
 
                 PostEditor(
                     fr,
-                    id
+                    id,
+                    navBack
                 )
             }
 

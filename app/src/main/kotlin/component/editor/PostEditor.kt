@@ -24,7 +24,9 @@ import androidx.compose.ui.unit.dp
 import data.db.LocalPostDatabase
 import data.grpc.PostServiceSingleton
 import data.ui.PostData
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
 import unilang.alias.i64
@@ -37,7 +39,8 @@ import java.util.*
 @Composable
 fun PostEditor(
     bodyFocusRequester: FocusRequester,
-    id: Optional<i64>
+    id: Optional<i64>,
+    navBack: () -> Unit
 ) {
     val ctx = LocalContext.current
     var initialized by rememberMutStateOf(false)
@@ -47,16 +50,18 @@ fun PostEditor(
 
     val coroutineScope = rememberCoroutineScope()
 
-    if (id.isPresent && !initialized)
-        coroutineScope.launch {
-            val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
-            val data = dao.getOne(id.get())
-            titleText = data.title
-            bodyText = data.body
-            initialized = true
-        }
+    suspend fun initialize() = withContext(Dispatchers.IO) {
+        val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
+        val data = dao.getOne(id.get())
+        titleText = data.title
+        bodyText = data.body
+        initialized = true
+    }
 
-    fun update() = coroutineScope.launch {
+    if (id.isPresent && !initialized)
+        coroutineScope.launch { initialize() }
+
+    suspend fun update() = withContext(Dispatchers.IO) {
         val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
         val data = dao.getOne(id.get())
         dao.update(
@@ -68,12 +73,12 @@ fun PostEditor(
         )
     }
 
-    fun create() = coroutineScope.launch {
+    suspend fun create() = withContext(Dispatchers.IO) {
         val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
         val service = PostServiceSingleton.getService(ctx).get()
 
-        val remoteData = service.create(titleText, bodyText).get()
-        dao.insert(remoteData)
+        val data = service.create(titleText, bodyText).get()
+        dao.insert(data)
     }
 
     Column {
@@ -97,10 +102,13 @@ fun PostEditor(
                 modifier = Modifier.height(30.dp),
                 contentPadding = PaddingValues(0.dp),
                 onClick = {
-                    if (id.isPresent)
-                        update()
-                    else
-                        create()
+                    coroutineScope.launch {
+                        if (id.isPresent)
+                            update()
+                        else
+                            create()
+                        navBack()
+                    }
                 }
             ) {
                 Text("Save")

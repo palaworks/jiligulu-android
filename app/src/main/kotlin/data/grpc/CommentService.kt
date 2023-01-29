@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import data.ui.CommentData
+import data.ui.PostData
 import grpc_code_gen.comment.CommentServiceGrpcKt
 import grpc_code_gen.comment.update.req
 import io.grpc.ManagedChannel
@@ -137,6 +138,12 @@ class CommentService(
             else
                 none()
         }
+
+    suspend fun create(data: CommentData) = create(data.body, data.bindingId, data.isReply)
+
+    suspend fun delete(data: CommentData) = delete(data.id)
+
+    suspend fun update(data: CommentData) = update(data.id, data.body)
 }
 
 object CommentServiceSingleton {

@@ -107,7 +107,11 @@ fun AppScreen() {
             composable(AppRoute.CREATE_POST) {
                 title = "Create post"
 
-                PostEditScreen(contentPadding = contentPadding, id = none())
+                PostEditScreen(
+                    contentPadding = contentPadding,
+                    id = none(),
+                    navBack = { navTo(AppRoute.POST_LIST) }
+                )
             }
             composable(
                 "${AppRoute.MODIFY_POST}/{id}",
@@ -116,7 +120,11 @@ fun AppScreen() {
                 title = "Edit post"
 
                 val id = getIdNavArg(entry)
-                PostEditScreen(contentPadding = contentPadding, id = id.some())
+                PostEditScreen(
+                    contentPadding = contentPadding,
+                    id = id.some(),
+                    navBack = { navTo(AppRoute.POST_LIST) }
+                )
             }
 
             composable(AppRoute.COMMENT_LIST) {
@@ -148,7 +156,8 @@ fun AppScreen() {
                     contentPadding = contentPadding,
                     id = none(),
                     bindingId = bindingId.some(),
-                    isReply = isReply.some()
+                    isReply = isReply.some(),
+                    navBack = { navTo(AppRoute.COMMENT_LIST) }
                 )
             }
             composable(
@@ -162,7 +171,8 @@ fun AppScreen() {
                     contentPadding = contentPadding,
                     id = id.some(),
                     bindingId = none(),
-                    isReply = none()
+                    isReply = none(),
+                    navBack = { navTo(AppRoute.COMMENT_LIST) }
                 )
             }
 

@@ -13,7 +13,9 @@ import component.card.PostDiffCard
 import data.db.LocalPostDatabase
 import data.grpc.PostServiceSingleton
 import data.ui.PostData
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ui.rememberMutStateOf
 import unilang.alias.i64
 import unilang.type.none
@@ -30,23 +32,26 @@ fun PostDiffDialog(
     afterApplyRemote: () -> Unit
 ) {
     val ctx = LocalContext.current
-    var loaded by rememberMutStateOf(false)
+    var initialized by rememberMutStateOf(false)
 
     var localData by rememberMutStateOf(none<PostData>())
     var remoteData by rememberMutStateOf(none<PostData>())
 
     val coroutineScope = rememberCoroutineScope()
-    coroutineScope.launch {
+
+    suspend fun initialize() = withContext(Dispatchers.IO) {
         val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
         val service = PostServiceSingleton.getService(ctx).get()
 
         localData = dao.maybe(id).optional()
         remoteData = service.getOne(id)
 
-        loaded = true
+        initialized = true
     }
 
-    if (loaded)
+    coroutineScope.launch { initialize() }
+
+    if (initialized)
 
         AlertDialog(
             title = {

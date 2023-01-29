@@ -24,6 +24,7 @@ fun CommentEditScreen(
     id: Optional<i64>,
     bindingId: Optional<i64>,
     isReply: Optional<Boolean>,
+    navBack: () -> Unit
 ) {
     val fr = remember { FocusRequester() }
 
@@ -40,7 +41,8 @@ fun CommentEditScreen(
                     fr,
                     id,
                     bindingId,
-                    isReply
+                    isReply,
+                    navBack
                 )
             }
 

@@ -16,7 +16,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import data.db.AppSetting
 import data.db.AppSettingDatabase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
 import unilang.type.*
@@ -33,15 +35,19 @@ fun Settings(
     val coroutineScope = rememberCoroutineScope()
 
     coroutineScope.launch {
-        val dao = AppSettingDatabase.getDatabase(ctx).appSettingDao()
-        setting = dao.get().some()
+        withContext(Dispatchers.IO) {
+            val dao = AppSettingDatabase.getDatabase(ctx).appSettingDao()
+            setting = dao.get().some()
+        }
     }
 
     fun save(data: AppSetting) {
         coroutineScope.launch {
-            val dao = AppSettingDatabase.getDatabase(ctx).appSettingDao()
-            dao.update(data)
-            setting = dao.get().some()
+            withContext(Dispatchers.IO) {
+                val dao = AppSettingDatabase.getDatabase(ctx).appSettingDao()
+                dao.update(data)
+                setting = dao.get().some()
+            }
         }
     }
 

@@ -52,24 +52,9 @@ fun CommentDiffCard(
         val service = CommentServiceSingleton.getService(ctx).get()
         //TODO handle err
         when (conflictType) {
-            ConflictType.LocalOnly -> {
-                val data = localData.get()
-                service.create(
-                    data.body,
-                    data.bindingId,
-                    data.isReply
-                )
-            }
-            ConflictType.RemoteOnly -> {
-                service.delete(remoteData.get().id)
-            }
-            ConflictType.DataDiff -> {
-                val data = localData.get()
-                service.update(
-                    data.id,
-                    data.body
-                )
-            }
+            ConflictType.LocalOnly -> service.create(localData.get())
+            ConflictType.RemoteOnly -> service.delete(remoteData.get())
+            ConflictType.DataDiff -> service.update(localData.get())
         }
     }
 

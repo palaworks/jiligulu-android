@@ -24,7 +24,9 @@ import androidx.compose.ui.unit.dp
 import data.db.LocalCommentDatabase
 import data.grpc.CommentServiceSingleton
 import data.ui.CommentData
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
 import unilang.alias.i64
@@ -41,6 +43,7 @@ fun CommentEditor(
     id: Optional<i64>,
     bindingId: Optional<i64>,
     isReply: Optional<Boolean>,
+    navBack: () -> Unit
 ) {
     val ctx = LocalContext.current
     var initialized by rememberMutStateOf(false)
@@ -48,15 +51,18 @@ fun CommentEditor(
     var bodyText by rememberMutStateOf("")
 
     val coroutineScope = rememberCoroutineScope()
-    if (id.isPresent && !initialized)
-        coroutineScope.launch {
-            val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
-            val data = dao.getOne(id.get())
-            bodyText = data.body
-            initialized = true
-        }
 
-    fun update() = coroutineScope.launch {
+    suspend fun initialize() = withContext(Dispatchers.IO) {
+        val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+        val data = dao.getOne(id.get())
+        bodyText = data.body
+        initialized = true
+    }
+
+    if (id.isPresent && !initialized)
+        coroutineScope.launch { initialize() }
+
+    suspend fun update() = withContext(Dispatchers.IO) {
         val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
         val data = dao.getOne(id.get())
         dao.update(
@@ -67,12 +73,12 @@ fun CommentEditor(
         )
     }
 
-    fun create() = coroutineScope.launch {
+    suspend fun create() = withContext(Dispatchers.IO) {
         val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
         val service = CommentServiceSingleton.getService(ctx).get()
 
-        val remoteData = service.create(bodyText, bindingId.get(), isReply.get()).get()
-        dao.insert(remoteData)
+        val data = service.create(bodyText, bindingId.get(), isReply.get()).get()
+        dao.insert(data)
     }
 
     Column {
@@ -96,10 +102,13 @@ fun CommentEditor(
                 modifier = Modifier.height(30.dp),
                 contentPadding = PaddingValues(0.dp),
                 onClick = {
-                    if (id.isPresent)
-                        update()
-                    else
-                        create()
+                    coroutineScope.launch {
+                        if (id.isPresent)
+                            update()
+                        else
+                            create()
+                        navBack()
+                    }
                 }
             ) {
                 Text("Save")

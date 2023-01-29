@@ -132,6 +132,12 @@ class PostService(
             else
                 none()
         }
+
+    suspend fun create(data: PostData) = create(data.title, data.body)
+
+    suspend fun delete(data: PostData) = delete(data.id)
+
+    suspend fun update(data: PostData) = update(data.id, data.title, data.body)
 }
 
 object PostServiceSingleton {

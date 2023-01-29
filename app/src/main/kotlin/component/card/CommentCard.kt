@@ -21,14 +21,15 @@ import androidx.compose.ui.unit.dp
 import component.dialog.CommentDiffDialog
 import data.db.LocalCommentDatabase
 import data.ui.CommentData
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
 import unilang.alias.*
 import unilang.time.format
 import unilang.time.yyMdHmm
 import unilang.type.notNullThen
-import java.text.SimpleDateFormat
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -54,14 +55,14 @@ fun CommentCard(
 
     val ctx = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    fun ifExistLocalThenEdit() = coroutineScope.launch {
+    suspend fun ifExistLocalThenEdit() = withContext(Dispatchers.IO) {
         val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
         dao.maybe(data.id).notNullThen { navToEdit() }
     }
 
     Card(
         modifier = Modifier
-            .clickable { ifExistLocalThenEdit() },
+            .clickable { coroutineScope.launch { ifExistLocalThenEdit() } },
         colors = CardDefaults.cardColors(
             MaterialTheme.colorScheme.surfaceVariant
         )
