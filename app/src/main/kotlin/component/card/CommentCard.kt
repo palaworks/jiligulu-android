@@ -101,7 +101,7 @@ fun CommentCard(
                         )
                     }
 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(Modifier.width(16.dp))
                 Text(
                     text = data.body,
                     style = MaterialTheme.typography.bodyLarge,
@@ -113,7 +113,7 @@ fun CommentCard(
                 )
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(Modifier.height(20.dp))
 
             Row(
                 modifier = FillMaxWidthModifier, horizontalArrangement = Arrangement.SpaceBetween
@@ -138,7 +138,7 @@ fun CommentCard(
                         tint = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.size(16.dp)
                     )
-                    Spacer(modifier = Modifier.width(3.dp))
+                    Spacer(Modifier.width(3.dp))
                     Text(
                         text = data.createTime.format(yyMdHmm),
                         style = MaterialTheme.typography.labelMedium,

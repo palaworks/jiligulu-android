@@ -12,7 +12,7 @@ fun SettingsScreen(
     contentPadding: PaddingValues
 ) {
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(Modifier.height(40.dp))
         Settings(contentPadding)
     }
 }

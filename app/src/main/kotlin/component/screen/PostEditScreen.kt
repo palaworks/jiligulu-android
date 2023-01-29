@@ -32,7 +32,7 @@ fun PostEditScreen(
                     .padding(horizontal = 20.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(Modifier.height(10.dp))
 
                 PostEditor(
                     fr,

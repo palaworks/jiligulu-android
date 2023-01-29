@@ -32,7 +32,7 @@ fun TryPullDownInfo() {
                     modifier = FillMaxWidthModifier
                         .size(100.dp)
                 )
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(Modifier.height(10.dp))
                 Text(
                     text =
                     """No data yet

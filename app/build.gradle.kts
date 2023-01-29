@@ -76,8 +76,8 @@ dependencies {
     implementation("io.grpc:grpc-kotlin-stub:$grpcKotlinVersion")
     implementation("io.grpc:grpc-protobuf:$grpcVersion")
     implementation("com.google.protobuf:protobuf-kotlin:$protobufVersion")
-    implementation("io.grpc:grpc-okhttp:1.52.1")
     implementation("io.grpc:grpc-stub:1.52.1")
+    implementation("io.grpc:grpc-okhttp:1.52.1")
 
     val roomVersion = "2.5.0"
     implementation("androidx.room:room-runtime:$roomVersion")

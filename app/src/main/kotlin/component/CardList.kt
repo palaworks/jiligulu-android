@@ -48,10 +48,10 @@ fun <T> CardList(
             TryPullDownInfo()
         else {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(Modifier.height(10.dp))
                 data.forEach {
                     render(it)
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(Modifier.height(10.dp))
                 }
             }
         }

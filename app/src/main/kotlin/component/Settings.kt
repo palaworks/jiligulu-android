@@ -56,7 +56,7 @@ fun Settings(
                 fontWeight = FontWeight.Bold,
                 text = "gRPC channel"
             )
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(Modifier.height(20.dp))
             SettingItem(
                 "Host",
                 "E.g., https://for.example.domain",
@@ -67,7 +67,7 @@ fun Settings(
                     save(old.copy(grpcHost = it))
                 }
             }
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(Modifier.height(20.dp))
             SettingItem(
                 "Port",
                 "E.g., 40040",
@@ -79,7 +79,7 @@ fun Settings(
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(Modifier.height(40.dp))
 
             Text(
                 style = MaterialTheme.typography.bodyMedium,
@@ -87,7 +87,7 @@ fun Settings(
                 fontWeight = FontWeight.Bold,
                 text = "pilipala account"
             )
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(Modifier.height(20.dp))
             SettingItem(
                 "User id",
                 "E.g., 1001",
@@ -98,7 +98,7 @@ fun Settings(
                     save(old.copy(pilipalaUid = it.toLong()))
                 }
             }
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(Modifier.height(20.dp))
             SettingItem(
                 "Password",
                 "E.g., 114514",
