@@ -31,8 +31,8 @@ import java.util.*
 fun PostListScreen(
     contentPadding: PaddingValues,
     viewModel: PostScreenViewModel,
-    navToPostEditor: (i64) -> Unit,
-    navToCreateComment: (i64) -> Unit,
+    navToPostEdit: (i64) -> Unit,
+    navToCommentCreate: (i64) -> Unit,
 ) {
     val ctx = LocalContext.current
     val uiState by viewModel.state.collectAsState()
@@ -80,10 +80,10 @@ fun PostListScreen(
                 val id = data.id
                 PostCard(
                     {
-                        navToPostEditor(id)
+                        navToPostEdit(id)
                     },
                     {
-                        navToCreateComment(id)
+                        navToCommentCreate(id)
                     },
                     data,
                     uiState.conflict.any { it.id == id },

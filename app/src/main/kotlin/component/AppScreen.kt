@@ -96,10 +96,10 @@ fun AppScreen() {
                 PostListScreen(
                     contentPadding = contentPadding,
                     postScreenViewModel,
-                    navToPostEditor = { id: i64 ->
+                    navToPostEdit = { id: i64 ->
                         navTo("${AppRoute.MODIFY_POST}/$id")
                     },
-                    navToCreateComment = { bindingId: i64 ->
+                    navToCommentCreate = { bindingId: i64 ->
                         navTo("${AppRoute.CREATE_COMMENT}/$bindingId-false")
                     }
                 )
@@ -133,10 +133,10 @@ fun AppScreen() {
                 CommentListScreen(
                     contentPadding = contentPadding,
                     viewModel = commentScreenViewModel,
-                    navToCommentEditor = { id: i64 ->
+                    navToCommentEdit = { id: i64 ->
                         navTo("${AppRoute.MODIFY_COMMENT}/$id")
                     },
-                    navToCreateComment = { bindingId: i64 ->
+                    navToCommentCreate = { bindingId: i64 ->
                         navTo("${AppRoute.CREATE_COMMENT}/$bindingId-true")
                     },
                 )

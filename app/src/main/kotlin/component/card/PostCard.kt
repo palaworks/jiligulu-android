@@ -20,7 +20,9 @@ import androidx.compose.ui.unit.dp
 import component.dialog.PostDiffDialog
 import data.db.LocalPostDatabase
 import data.ui.PostData
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
 import unilang.alias.*
@@ -33,8 +35,8 @@ import java.util.*
 @SuppressLint("SimpleDateFormat")
 @Composable
 fun PostCard(
-    navToEdit: () -> Unit,
-    navToCreateComment: () -> Unit,
+    navToPostEdit: () -> Unit,
+    navToCommentCreate: () -> Unit,
     data: PostData,
     existDiff: Boolean,
     afterApplyLocal: () -> Unit,
@@ -54,7 +56,8 @@ fun PostCard(
     val coroutineScope = rememberCoroutineScope()
     fun ifExistLocalThenEdit() = coroutineScope.launch {
         val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
-        dao.maybe(data.id).notNullThen { navToEdit() }
+        if (dao.maybe(data.id) != null)
+            withContext(Dispatchers.Main) { navToPostEdit() }
     }
 
     Card(
@@ -90,7 +93,7 @@ fun PostCard(
                         }
                     } else
                         IconButton(
-                            onClick = { navToCreateComment() },
+                            onClick = { navToCommentCreate() },
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primary)

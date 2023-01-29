@@ -36,8 +36,8 @@ import java.util.*
 @SuppressLint("SimpleDateFormat", "CoroutineCreationDuringComposition")
 @Composable
 fun CommentCard(
-    navToEdit: () -> Unit,
-    navToCreateComment: () -> Unit,
+    navToCommentEdit: () -> Unit,
+    navToCommentCreate: () -> Unit,
     data: CommentData,
     existDiff: Boolean,
     afterApplyLocal: () -> Unit,
@@ -57,7 +57,8 @@ fun CommentCard(
     val coroutineScope = rememberCoroutineScope()
     suspend fun ifExistLocalThenEdit() = withContext(Dispatchers.IO) {
         val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
-        dao.maybe(data.id).notNullThen { navToEdit() }
+        if (dao.maybe(data.id) != null)
+            withContext(Dispatchers.Main) { navToCommentEdit() }
     }
 
     Card(
@@ -90,7 +91,7 @@ fun CommentCard(
                     }
                 else
                     IconButton(
-                        onClick = { navToCreateComment() },
+                        onClick = { navToCommentCreate() },
                         modifier = Modifier
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primary)

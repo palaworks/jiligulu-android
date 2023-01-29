@@ -30,8 +30,8 @@ import java.util.*
 fun CommentListScreen(
     contentPadding: PaddingValues,
     viewModel: CommentScreenViewModel,
-    navToCommentEditor: (i64) -> Unit,
-    navToCreateComment: (i64) -> Unit,
+    navToCommentEdit: (i64) -> Unit,
+    navToCommentCreate: (i64) -> Unit,
 ) {
     val ctx = LocalContext.current
     val uiState by viewModel.state.collectAsState()
@@ -78,10 +78,10 @@ fun CommentListScreen(
                 val id = data.id
                 CommentCard(
                     {
-                        navToCommentEditor(id)
+                        navToCommentEdit(id)
                     },
                     {
-                        navToCreateComment(id)
+                        navToCommentCreate(id)
                     },
                     data,
                     uiState.conflict.any { it.id == id },
