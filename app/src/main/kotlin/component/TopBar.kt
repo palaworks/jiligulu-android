@@ -1,20 +1,23 @@
 package component
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(title: String) {
+fun TopBar(
+    title: String,
+    actions: @Composable RowScope.() -> Unit
+) {
+    val colors =
+        TopAppBarDefaults.smallTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+
     TopAppBar(
         title = { Text(title) },
-        colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = colors,
+        actions = actions
     )
-}
-
-@Preview
-@Composable
-fun TopBar() {
-    TopBar("Title")
 }

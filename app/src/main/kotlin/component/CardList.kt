@@ -2,8 +2,7 @@ package component
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
@@ -47,11 +46,15 @@ fun <T> CardList(
         if (data.isEmpty())
             TryPullDownInfo()
         else {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                Spacer(Modifier.height(10.dp))
-                data.forEach {
-                    render(it)
+            LazyColumn {
+                item {
                     Spacer(Modifier.height(10.dp))
+                }
+                data.forEach {
+                    item {
+                        render(it)
+                        Spacer(Modifier.height(10.dp))
+                    }
                 }
             }
         }

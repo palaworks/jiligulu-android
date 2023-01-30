@@ -1,6 +1,5 @@
 package component
 
-import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
@@ -8,7 +7,6 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -30,14 +28,23 @@ import unilang.type.some
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppScreen() {
     val navController = rememberNavController()
     val state by navController.currentBackStackEntryAsState()
 
-    var title by rememberMutStateOf("Posts")
+    @Composable
+    fun onRoute(route: String, f: @Composable () -> Unit) {
+        if (state
+                ?.destination
+                ?.hierarchy
+                ?.any { it.route == route }
+            == true
+        ) f()
+    }
+
+    var title by rememberMutStateOf("")
 
     val idNavArg = navArgument("id") { type = NavType.LongType }
     val getIdNavArg = { entry: NavBackStackEntry ->
@@ -60,20 +67,14 @@ fun AppScreen() {
     Scaffold(
         modifier = Modifier,
         floatingActionButton = {
-            state?.destination?.hierarchy?.any {
-                when (it.route) {
-                    AppRoute.POST_LIST -> {
-                        CreateButton {
-                            navTo(AppRoute.CREATE_POST)
-                        }
-                        true
-                    }
-                    else -> false
+            onRoute(AppRoute.POST_LIST) {
+                CreateButton {
+                    navTo(AppRoute.CREATE_POST)
                 }
             }
         },
         topBar = {
-            TopBar(title)
+            TopBar(title) {}
         },
         bottomBar = {
             BottomNavBar(
