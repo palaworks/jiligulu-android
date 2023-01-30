@@ -21,7 +21,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import component.dialog.CommentDiffDialog
-import data.db.LocalCommentDatabase
+import data.db.LocalCommentDbSingleton
 import data.ui.CommentData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -37,7 +37,6 @@ import java.util.*
 
 @OptIn(ExperimentalTextApi::class)
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-@SuppressLint("SimpleDateFormat", "CoroutineCreationDuringComposition")
 @Composable
 fun CommentCard(
     navToCommentEdit: () -> Unit,
@@ -60,7 +59,7 @@ fun CommentCard(
     val ctx = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     suspend fun ifExistLocalThenEdit() = withContext(Dispatchers.IO) {
-        val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+        val dao = LocalCommentDbSingleton(ctx).localCommentDao()
         if (dao.maybe(data.id) != null)
             withContext(Dispatchers.Main) { navToCommentEdit() }
     }

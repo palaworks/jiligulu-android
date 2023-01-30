@@ -10,7 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import component.card.CommentDiffCard
-import data.db.LocalCommentDatabase
+import data.db.LocalCommentDbSingleton
 import data.grpc.CommentServiceSingleton
 import data.ui.CommentData
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +40,7 @@ fun CommentDiffDialog(
     val coroutineScope = rememberCoroutineScope()
 
     suspend fun initialize() = withContext(Dispatchers.IO) {
-        val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+        val dao = LocalCommentDbSingleton(ctx).localCommentDao()
         val service = CommentServiceSingleton(ctx).get()
 
         localData = dao.maybe(id).optional()

@@ -1,20 +1,16 @@
 package component.screen
 
-import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import component.CardList
 import component.card.CommentCard
-import data.db.LocalCommentDatabase
+import data.db.LocalCommentDbSingleton
 import data.grpc.CommentServiceSingleton
 import data.ui.CommentData
 import data.ui.sha256
@@ -22,7 +18,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ui.FillMaxSizeModifier
 import ui.state.CommentScreenViewModel
-import unilang.alias.i32
 import unilang.alias.i64
 import unilang.type.copyUnless
 import java.util.*
@@ -40,7 +35,7 @@ fun CommentListScreen(
     val uiState by viewModel.state.collectAsState()
 
     suspend fun load() = withContext(Dispatchers.IO) {
-        val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+        val dao = LocalCommentDbSingleton(ctx).localCommentDao()
         val service = CommentServiceSingleton(ctx).get()
 
         val local = dao.getAll()

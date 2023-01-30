@@ -39,38 +39,38 @@ interface AppSettingDao {
 @Database(entities = [AppSetting::class], version = 1)
 abstract class AppSettingDatabase : RoomDatabase() {
     abstract fun appSettingDao(): AppSettingDao
+}
 
-    companion object {
-        private var db = none<AppSettingDatabase>()
+object AppSettingDbSingleton {
+    private var db = none<AppSettingDatabase>()
 
-        @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-        suspend fun getDatabase(ctx: Context) =
-            withContext(Dispatchers.IO) {
-                if (db.isEmpty)
-                    synchronized(this) {
-                        db =
-                            Room.databaseBuilder(
-                                ctx,
-                                AppSettingDatabase::class.java,
-                                "app_setting_database"
-                            )
-                                .build()
-                                .some()
-                    }
-
-                val dao = db.get().appSettingDao()
-                if (dao.maybe() == null)
-                    dao.insert(
-                        AppSetting(
-                            0,
-                            null,
-                            null,
-                            null,
-                            null
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    suspend operator fun invoke(ctx: Context) =
+        withContext(Dispatchers.IO) {
+            if (db.isEmpty)
+                synchronized(this) {
+                    db =
+                        Room.databaseBuilder(
+                            ctx,
+                            AppSettingDatabase::class.java,
+                            "app_setting_database"
                         )
-                    )
+                            .build()
+                            .some()
+                }
 
-                db.get()
-            }
-    }
+            val dao = db.get().appSettingDao()
+            if (dao.maybe() == null)
+                dao.insert(
+                    AppSetting(
+                        0,
+                        null,
+                        null,
+                        null,
+                        null
+                    )
+                )
+
+            db.get()
+        }
 }

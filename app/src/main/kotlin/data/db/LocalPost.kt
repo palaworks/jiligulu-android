@@ -38,26 +38,26 @@ interface LocalPostDao {
 @Database(entities = [PostData::class], version = 1)
 abstract class LocalPostDatabase : RoomDatabase() {
     abstract fun localPostDao(): LocalPostDao
+}
 
-    companion object {
-        private var db = none<LocalPostDatabase>()
+object LocalPostDbSingleton {
+    private var db = none<LocalPostDatabase>()
 
-        @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-        suspend fun getDatabase(ctx: Context) =
-            withContext(Dispatchers.IO) {
-                if (db.isEmpty)
-                    synchronized(this) {
-                        db =
-                            Room.databaseBuilder(
-                                ctx,
-                                LocalPostDatabase::class.java,
-                                "local_post_database"
-                            )
-                                .build()
-                                .some()
-                    }
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    suspend operator fun invoke(ctx: Context) =
+        withContext(Dispatchers.IO) {
+            if (db.isEmpty)
+                synchronized(this) {
+                    db = Room
+                        .databaseBuilder(
+                            ctx,
+                            LocalPostDatabase::class.java,
+                            "local_post_database"
+                        )
+                        .build()
+                        .some()
+                }
 
-                db.get()
-            }
-    }
+            db.get()
+        }
 }

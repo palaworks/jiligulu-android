@@ -6,24 +6,20 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import component.CardList
 import component.card.PostCard
-import data.db.LocalPostDatabase
+import data.db.LocalPostDbSingleton
 import data.grpc.PostServiceSingleton
-import data.ui.CommentData
 import data.ui.PostData
 import data.ui.sha256
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ui.FillMaxSizeModifier
 import ui.state.PostScreenViewModel
-import unilang.alias.i32
 import unilang.alias.i64
 import unilang.type.copyUnless
 import java.util.*
@@ -42,7 +38,7 @@ fun PostListScreen(
     val uiState by viewModel.state.collectAsState()
 
     suspend fun load() = withContext(Dispatchers.IO) {
-        val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
+        val dao = LocalPostDbSingleton(ctx).localPostDao()
         val service = PostServiceSingleton(ctx).get()
 
         val local = dao.getAll()

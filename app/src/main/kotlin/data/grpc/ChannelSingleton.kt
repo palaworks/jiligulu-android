@@ -3,7 +3,7 @@ package data.grpc
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
-import data.db.AppSettingDatabase
+import data.db.AppSettingDbSingleton
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +18,7 @@ object ChannelSingleton {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend operator fun invoke(ctx: Context) =
         withContext(Dispatchers.IO) {
-            val dao = AppSettingDatabase.getDatabase(ctx).appSettingDao()
+            val dao = AppSettingDbSingleton(ctx).appSettingDao()
             val appSetting = dao.get()
 
             if (channel.isEmpty)

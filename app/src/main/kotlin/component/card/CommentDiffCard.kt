@@ -16,7 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import data.db.LocalCommentDatabase
+import data.db.LocalCommentDbSingleton
 import data.grpc.CommentServiceSingleton
 import data.ui.CommentData
 import data.ui.ConflictType
@@ -59,20 +59,12 @@ fun CommentDiffCard(
     }
 
     suspend fun applyRemote() = withContext(Dispatchers.IO) {
-        val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+        val dao = LocalCommentDbSingleton(ctx).localCommentDao()
         //TODO handle err
         when (conflictType) {
-            ConflictType.LocalOnly -> {
-                dao.delete(localData.get().id)
-            }
-            ConflictType.RemoteOnly -> {
-                val data = remoteData.get()
-                dao.insert(data)
-            }
-            ConflictType.DataDiff -> {
-                val data = remoteData.get()
-                dao.update(data)
-            }
+            ConflictType.LocalOnly -> dao.delete(localData.get().id)
+            ConflictType.RemoteOnly -> dao.insert(remoteData.get())
+            ConflictType.DataDiff -> dao.update(remoteData.get())
         }
     }
 

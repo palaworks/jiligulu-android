@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import data.db.AppSetting
 import data.db.AppSettingDatabase
+import data.db.AppSettingDbSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -36,7 +37,7 @@ fun Settings(
 
     coroutineScope.launch {
         withContext(Dispatchers.IO) {
-            val dao = AppSettingDatabase.getDatabase(ctx).appSettingDao()
+            val dao = AppSettingDbSingleton(ctx).appSettingDao()
             setting = dao.get().some()
         }
     }
@@ -44,7 +45,7 @@ fun Settings(
     fun save(data: AppSetting) {
         coroutineScope.launch {
             withContext(Dispatchers.IO) {
-                val dao = AppSettingDatabase.getDatabase(ctx).appSettingDao()
+                val dao = AppSettingDbSingleton(ctx).appSettingDao()
                 dao.update(data)
                 setting = dao.get().some()
             }

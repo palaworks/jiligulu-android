@@ -10,7 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import component.card.PostDiffCard
-import data.db.LocalPostDatabase
+import data.db.LocalPostDbSingleton
 import data.grpc.PostServiceSingleton
 import data.ui.PostData
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +40,7 @@ fun PostDiffDialog(
     val coroutineScope = rememberCoroutineScope()
 
     suspend fun initialize() = withContext(Dispatchers.IO) {
-        val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
+        val dao = LocalPostDbSingleton(ctx).localPostDao()
         val service = PostServiceSingleton(ctx).get()
 
         localData = dao.maybe(id).optional()

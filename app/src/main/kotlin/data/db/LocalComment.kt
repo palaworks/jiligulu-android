@@ -38,26 +38,26 @@ interface LocalCommentDao {
 @Database(entities = [CommentData::class], version = 1)
 abstract class LocalCommentDatabase : RoomDatabase() {
     abstract fun localCommentDao(): LocalCommentDao
+}
 
-    companion object {
-        private var db = none<LocalCommentDatabase>()
+object LocalCommentDbSingleton {
+    private var db = none<LocalCommentDatabase>()
 
-        @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-        suspend fun getDatabase(ctx: Context) =
-            withContext(Dispatchers.IO) {
-                if (db.isEmpty)
-                    synchronized(this) {
-                        db =
-                            Room.databaseBuilder(
-                                ctx,
-                                LocalCommentDatabase::class.java,
-                                "local_comment_database"
-                            )
-                                .build()
-                                .some()
-                    }
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    suspend operator fun invoke(ctx: Context) =
+        withContext(Dispatchers.IO) {
+            if (db.isEmpty)
+                synchronized(this) {
+                    db = Room
+                        .databaseBuilder(
+                            ctx,
+                            LocalCommentDatabase::class.java,
+                            "local_comment_database"
+                        )
+                        .build()
+                        .some()
+                }
 
-                db.get()
-            }
-    }
+            db.get()
+        }
 }

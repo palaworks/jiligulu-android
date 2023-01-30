@@ -21,7 +21,7 @@ import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import component.NoRipple
-import data.db.LocalPostDatabase
+import data.db.LocalPostDbSingleton
 import data.grpc.PostServiceSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -49,7 +49,7 @@ fun PostEditor(
     val coroutineScope = rememberCoroutineScope()
 
     suspend fun initialize() = withContext(Dispatchers.IO) {
-        val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
+        val dao = LocalPostDbSingleton(ctx).localPostDao()
         val data = dao.getOne(id.get())
         titleText = data.title
         bodyText = data.body
@@ -60,7 +60,7 @@ fun PostEditor(
         coroutineScope.launch { initialize() }
 
     suspend fun update() = withContext(Dispatchers.IO) {
-        val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
+        val dao = LocalPostDbSingleton(ctx).localPostDao()
         val data = dao.getOne(id.get())
         dao.update(
             data.copy(
@@ -72,7 +72,7 @@ fun PostEditor(
     }
 
     suspend fun create() = withContext(Dispatchers.IO) {
-        val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
+        val dao = LocalPostDbSingleton(ctx).localPostDao()
         val service = PostServiceSingleton(ctx).get()
 
         val data = service.create(titleText, bodyText).get()

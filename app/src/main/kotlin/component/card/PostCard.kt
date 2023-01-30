@@ -20,7 +20,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import component.dialog.PostDiffDialog
-import data.db.LocalPostDatabase
+import data.db.LocalPostDbSingleton
 import data.ui.PostData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -36,7 +36,6 @@ import java.util.*
 
 @OptIn(ExperimentalTextApi::class)
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-@SuppressLint("SimpleDateFormat")
 @Composable
 fun PostCard(
     navToPostEdit: () -> Unit,
@@ -55,7 +54,7 @@ fun PostCard(
     val ctx = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     fun ifExistLocalThenEdit() = coroutineScope.launch {
-        val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
+        val dao = LocalPostDbSingleton(ctx).localPostDao()
         if (dao.maybe(data.id) != null) withContext(Dispatchers.Main) { navToPostEdit() }
     }
 

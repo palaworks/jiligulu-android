@@ -16,7 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import data.db.LocalPostDatabase
+import data.db.LocalPostDbSingleton
 import data.grpc.PostServiceSingleton
 import data.ui.ConflictType
 import data.ui.PostData
@@ -59,18 +59,12 @@ fun PostDiffCard(
     }
 
     suspend fun applyRemote() = withContext(Dispatchers.IO) {
-        val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
+        val dao = LocalPostDbSingleton(ctx).localPostDao()
         //TODO handle err
         when (conflictType) {
-            ConflictType.LocalOnly -> {
-                dao.delete(localData.get().id)
-            }
-            ConflictType.RemoteOnly -> {
-                dao.insert(remoteData.get())
-            }
-            ConflictType.DataDiff -> {
-                dao.update(remoteData.get())
-            }
+            ConflictType.LocalOnly -> dao.delete(localData.get().id)
+            ConflictType.RemoteOnly -> dao.insert(remoteData.get())
+            ConflictType.DataDiff -> dao.update(remoteData.get())
         }
     }
 

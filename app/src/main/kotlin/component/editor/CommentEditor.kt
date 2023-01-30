@@ -21,7 +21,7 @@ import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import component.NoRipple
-import data.db.LocalCommentDatabase
+import data.db.LocalCommentDbSingleton
 import data.grpc.CommentServiceSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -50,7 +50,7 @@ fun CommentEditor(
     val coroutineScope = rememberCoroutineScope()
 
     suspend fun initialize() = withContext(Dispatchers.IO) {
-        val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+        val dao = LocalCommentDbSingleton(ctx).localCommentDao()
         val data = dao.getOne(id.get())
         bodyText = data.body
         initialized = true
@@ -60,7 +60,7 @@ fun CommentEditor(
         coroutineScope.launch { initialize() }
 
     suspend fun update() = withContext(Dispatchers.IO) {
-        val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+        val dao = LocalCommentDbSingleton(ctx).localCommentDao()
         val data = dao.getOne(id.get())
         dao.update(
             data.copy(
@@ -71,7 +71,7 @@ fun CommentEditor(
     }
 
     suspend fun create() = withContext(Dispatchers.IO) {
-        val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
+        val dao = LocalCommentDbSingleton(ctx).localCommentDao()
         val service = CommentServiceSingleton(ctx).get()
 
         val data = service.create(bodyText, bindingId.get(), isReply.get()).get()

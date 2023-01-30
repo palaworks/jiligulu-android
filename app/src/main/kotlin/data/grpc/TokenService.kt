@@ -3,7 +3,7 @@ package data.grpc
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
-import data.db.AppSettingDatabase
+import data.db.AppSettingDbSingleton
 import grpc_code_gen.token.TokenServiceGrpcKt
 import io.grpc.ManagedChannel
 import kotlinx.coroutines.Dispatchers
@@ -59,7 +59,7 @@ internal constructor(
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun getOne() =
         withContext(Dispatchers.IO) {
-            val dao = AppSettingDatabase.getDatabase(ctx).appSettingDao()
+            val dao = AppSettingDbSingleton(ctx).appSettingDao()
             val setting = dao.get()
             val uid = setting.pilipalaUid.optional()
             val pwd = setting.pilipalaPwd.optional()
