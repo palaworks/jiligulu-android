@@ -1,6 +1,7 @@
 package component
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.ExperimentalMaterialApi
@@ -12,11 +13,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import ui.FillMaxSizeModifier
 import ui.rememberMutStateOf
+import unilang.type.some
 import java.util.*
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -29,6 +32,7 @@ fun <T> CardList(
 ) {
     val refreshScope = rememberCoroutineScope()
     var refreshing by rememberMutStateOf(false)
+    val ctx = LocalContext.current
 
     fun refresh() = refreshScope.launch {
         refreshing = true

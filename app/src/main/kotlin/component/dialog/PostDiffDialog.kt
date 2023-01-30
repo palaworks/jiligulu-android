@@ -41,7 +41,7 @@ fun PostDiffDialog(
 
     suspend fun initialize() = withContext(Dispatchers.IO) {
         val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
-        val service = PostServiceSingleton.getService(ctx).get()
+        val service = PostServiceSingleton(ctx).get()
 
         localData = dao.maybe(id).optional()
         remoteData = service.getOne(id)

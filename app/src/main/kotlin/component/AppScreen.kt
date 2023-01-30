@@ -1,5 +1,6 @@
 package component
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
@@ -19,6 +20,7 @@ import androidx.navigation.navArgument
 import component.screen.*
 import global.AppRoute
 import global.bottomNavBarItems
+import kotlinx.coroutines.launch
 import ui.rememberMutStateOf
 import ui.state.CommentScreenViewModel
 import ui.state.PostScreenViewModel
@@ -27,6 +29,7 @@ import unilang.type.none
 import unilang.type.some
 import java.util.*
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,8 +67,18 @@ fun AppScreen() {
         }
     }
 
+    val snackBarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
+    fun showSnackBar(message: String) =
+        coroutineScope.launch {
+            snackBarHostState.showSnackbar(message = message, actionLabel = "OK")
+        }
+
     Scaffold(
-        modifier = Modifier,
+        snackbarHost = {
+            SnackbarHost(hostState = snackBarHostState)
+        },
         floatingActionButton = {
             onRoute(AppRoute.POST_LIST) {
                 CreateButton {
@@ -102,7 +115,8 @@ fun AppScreen() {
                     },
                     navToCommentCreate = { bindingId: i64 ->
                         navTo("${AppRoute.CREATE_COMMENT}/$bindingId-false")
-                    }
+                    },
+                    showSnackBar = ::showSnackBar
                 )
             }
             composable(AppRoute.CREATE_POST) {
@@ -140,6 +154,7 @@ fun AppScreen() {
                     navToCommentCreate = { bindingId: i64 ->
                         navTo("${AppRoute.CREATE_COMMENT}/$bindingId-true")
                     },
+                    showSnackBar = ::showSnackBar
                 )
             }
             composable(

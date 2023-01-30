@@ -72,7 +72,7 @@ fun CommentEditor(
 
     suspend fun create() = withContext(Dispatchers.IO) {
         val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
-        val service = CommentServiceSingleton.getService(ctx).get()
+        val service = CommentServiceSingleton(ctx).get()
 
         val data = service.create(bodyText, bindingId.get(), isReply.get()).get()
         dao.insert(data)

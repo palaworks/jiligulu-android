@@ -16,7 +16,7 @@ object ChannelSingleton {
     private var channel = none<ManagedChannel>()
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    suspend fun getChannel(ctx: Context) =
+    suspend operator fun invoke(ctx: Context) =
         withContext(Dispatchers.IO) {
             val dao = AppSettingDatabase.getDatabase(ctx).appSettingDao()
             val appSetting = dao.get()

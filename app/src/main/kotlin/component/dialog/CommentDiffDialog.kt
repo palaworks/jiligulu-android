@@ -41,7 +41,7 @@ fun CommentDiffDialog(
 
     suspend fun initialize() = withContext(Dispatchers.IO) {
         val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
-        val service = CommentServiceSingleton.getService(ctx).get()
+        val service = CommentServiceSingleton(ctx).get()
 
         localData = dao.maybe(id).optional()
         remoteData = service.getOne(id)

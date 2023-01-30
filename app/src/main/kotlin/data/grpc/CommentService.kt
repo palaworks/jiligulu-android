@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import data.ui.CommentData
-import data.ui.PostData
 import grpc_code_gen.comment.CommentServiceGrpcKt
 import grpc_code_gen.comment.update.req
 import io.grpc.ManagedChannel
@@ -17,20 +16,37 @@ import unilang.type.none
 import unilang.type.some
 import java.util.*
 
-class CommentService(
+class CommentService
+internal constructor(
     channel: ManagedChannel,
-    private val getToken: suspend () -> String
+    tokenService: CachedTokenService,
+    private val onNetworkErr: () -> Unit
 ) {
     private val stub = CommentServiceGrpcKt.CommentServiceCoroutineStub(channel)
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private val getToken = suspend { tokenService.getOne() }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun getOne(id: i64) =
         withContext(Dispatchers.IO) {
+            val token = getToken()
+
+            if (token.isEmpty)
+                return@withContext none()
+
             val req = grpc_code_gen.comment.get_one.req {
-                this.token = getToken()
+                this.token = token.get()
                 this.id = id
             }
 
-            val rsp = stub.getOne(req)
+            val result = runCatching { stub.getOne(req) }
+            if (result.isFailure) {
+                onNetworkErr()
+                return@withContext none()
+            }
+
+            val rsp = result.getOrThrow()
 
             if (rsp.ok) {
                 CommentData(
@@ -44,14 +60,26 @@ class CommentService(
             } else none()
         }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun getSome(idList: List<i64>) =
         withContext(Dispatchers.IO) {
+            val token = getToken()
+
+            if (token.isEmpty)
+                return@withContext none()
+
             val req = grpc_code_gen.comment.get_some.req {
-                this.token = getToken()
+                this.token = token.get()
                 this.idList.addAll(idList)
             }
 
-            val rsp = stub.getSome(req)
+            val result = runCatching { stub.getSome(req) }
+            if (result.isFailure) {
+                onNetworkErr()
+                return@withContext none()
+            }
+
+            val rsp = result.getOrThrow()
 
             //TODO handle err
             rsp.dataListList.map {
@@ -63,16 +91,28 @@ class CommentService(
                     Iso8601(it.createTime).toDate(),
                     Iso8601(it.modifyTime).toDate()
                 )
-            }
+            }.some()
         }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun getAll() =
         withContext(Dispatchers.IO) {
+            val token = getToken()
+
+            if (token.isEmpty)
+                return@withContext none()
+
             val req = grpc_code_gen.comment.get_all.req {
-                this.token = getToken()
+                this.token = token.get()
             }
 
-            val rsp = stub.getAll(req)
+            val result = runCatching { stub.getAll(req) }
+            if (result.isFailure) {
+                onNetworkErr()
+                return@withContext none()
+            }
+
+            val rsp = result.getOrThrow()
 
             //TODO handle err
             rsp.dataListList.map {
@@ -84,34 +124,58 @@ class CommentService(
                     Iso8601(it.createTime).toDate(),
                     Iso8601(it.modifyTime).toDate()
                 )
-            }
+            }.some()
         }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun getAllSha256() =
         withContext(Dispatchers.IO) {
+            val token = getToken()
+
+            if (token.isEmpty)
+                return@withContext none()
+
             val req = grpc_code_gen.comment.get_all_sha256.req {
-                this.token = getToken()
+                this.token = token.get()
             }
 
-            val rsp = stub.getAllSha256(req)
+            val result = runCatching { stub.getAllSha256(req) }
+            if (result.isFailure) {
+                onNetworkErr()
+                return@withContext none()
+            }
+
+            val rsp = result.getOrThrow()
 
             HashMap<i64, String>().apply {
                 rsp.dataListList.forEach {
                     this[it.id] = it.sha256
                 }
-            }
+            }.some()
         }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun create(body: String, bindingId: i64, isReply: Boolean) =
         withContext(Dispatchers.IO) {
+            val token = getToken()
+
+            if (token.isEmpty)
+                return@withContext none()
+
             val req = grpc_code_gen.comment.create.req {
-                this.token = getToken()
+                this.token = token.get()
                 this.body = body
                 this.bindingId = bindingId
                 this.isReply = isReply
             }
 
-            val rsp = stub.create(req)
+            val result = runCatching { stub.create(req) }
+            if (result.isFailure) {
+                onNetworkErr()
+                return@withContext none()
+            }
+
+            val rsp = result.getOrThrow()
 
             if (rsp.ok)
                 CommentData(
@@ -126,52 +190,87 @@ class CommentService(
                 none()
         }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun delete(id: i64) =
         withContext(Dispatchers.IO) {
+            val token = getToken()
+
+            if (token.isEmpty)
+                return@withContext false
+
             val req = grpc_code_gen.comment.delete.req {
-                this.token = getToken()
+                this.token = token.get()
                 this.id = id
             }
 
-            val rsp = stub.delete(req)
+            val result = runCatching { stub.delete(req) }
+            if (result.isFailure) {
+                onNetworkErr()
+                return@withContext false
+            }
+
+            val rsp = result.getOrThrow()
 
             rsp.ok
         }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun update(id: i64, body: String) =
         withContext(Dispatchers.IO) {
+            val token = getToken()
+
+            if (token.isEmpty)
+                return@withContext false
+
             val req = req {
-                this.token = getToken()
+                this.token = token.get()
                 this.id = id
                 this.body = body
             }
 
-            val rsp = stub.update(req)
+            val result = runCatching { stub.update(req) }
+            if (result.isFailure) {
+                onNetworkErr()
+                return@withContext false
+            }
+
+            val rsp = result.getOrThrow()
 
             rsp.ok
         }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun create(data: CommentData) = create(data.body, data.bindingId, data.isReply)
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun delete(data: CommentData) = delete(data.id)
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun update(data: CommentData) = update(data.id, data.body)
 }
 
 object CommentServiceSingleton {
-    private var commentService: Optional<CommentService> = none()
+    private var service: Optional<CommentService> = none()
+
+    private fun reset() {
+        if (service.isPresent)
+            service = none()
+    }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    suspend fun getService(ctx: Context) =
+    suspend operator fun invoke(ctx: Context) =
         withContext(Dispatchers.IO) {
-            if (commentService.isEmpty)
-                runCatching {
-                    val channel = ChannelSingleton.getChannel(ctx).get()
-                    val getToken = suspend { TokenServiceSingleton.getOne(ctx).get() }
+            if (service.isEmpty) {
+                val channel = ChannelSingleton(ctx)
+                val tokenService = TokenServiceSingleton(ctx)
 
-                    commentService = CommentService(channel, getToken).some()
-                }
+                service =
+                    if (channel.isPresent && tokenService.isPresent)
+                        CommentService(channel.get(), tokenService.get(), ::reset).some()
+                    else
+                        none()
+            }
 
-            commentService
+            service
         }
 }

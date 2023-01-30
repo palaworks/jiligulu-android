@@ -49,7 +49,7 @@ fun CommentDiffCard(
     val ctx = LocalContext.current
 
     suspend fun applyLocal() = withContext(Dispatchers.IO) {
-        val service = CommentServiceSingleton.getService(ctx).get()
+        val service = CommentServiceSingleton(ctx).get()
         //TODO handle err
         when (conflictType) {
             ConflictType.LocalOnly -> service.create(localData.get())

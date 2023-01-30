@@ -6,6 +6,8 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -32,38 +34,53 @@ fun CommentListScreen(
     viewModel: CommentScreenViewModel,
     navToCommentEdit: (i64) -> Unit,
     navToCommentCreate: (i64) -> Unit,
+    showSnackBar: (String) -> Unit
 ) {
     val ctx = LocalContext.current
     val uiState by viewModel.state.collectAsState()
 
     suspend fun load() = withContext(Dispatchers.IO) {
         val dao = LocalCommentDatabase.getDatabase(ctx).localCommentDao()
-        val service = CommentServiceSingleton.getService(ctx).get()
+        val service = CommentServiceSingleton(ctx).get()
+
+        val local = dao.getAll()
 
         val remoteIdSha256Map = service.getAllSha256()
-        val localList = dao.getAll()
+        if (remoteIdSha256Map.isEmpty) {
+            showSnackBar("Network error: failed to load remote data.")
+            viewModel.reset(local.sortedBy { -it.id }, listOf())
+            return@withContext
+        }
 
-        val resolved = mutableListOf<CommentData>()
+        val localOnly = mutableListOf<CommentData>()
+        val dataDiff = mutableListOf<CommentData>()
 
-        val conflict = localList
-            .fold(mutableListOf<CommentData>()) { acc, comment ->
-                acc.apply {
-                    val localSha256 = comment.sha256()
-                    val remoteSha256 = remoteIdSha256Map[comment.id]
+        local.forEach { data ->
+            val localSha256 = data.sha256()
+            val remoteSha256 = remoteIdSha256Map.get()[data.id]
 
-                    if (remoteSha256 == null)
-                        acc.add(comment)//local only comment
-                    else {
-                        remoteIdSha256Map.remove(comment.id)
-                        if (remoteSha256 == localSha256)
-                            resolved.add(comment)//resolved
-                        else
-                            acc.add(comment)//conflict
-                    }
-                }
-            } + service.getSome(remoteIdSha256Map.keys.toList())//add remote only comment
+            if (remoteSha256 == null)
+                localOnly.add(data)//local only comment
+            else {
+                remoteIdSha256Map.get().remove(data.id)//remove intersection
+                if (localSha256 != remoteSha256)
+                    dataDiff.add(data)//data diff
+            }
+        }
 
-        viewModel.reset((conflict + resolved).sortedBy { it.id }, conflict)
+        val remoteOnly =
+            service.getSome(remoteIdSha256Map.get().keys.toList())//add remote only
+
+        if (remoteOnly.isEmpty) {
+            showSnackBar("Network error: failed to load remote data.")
+            viewModel.reset(local.sortedBy { -it.id }, listOf())
+            return@withContext
+        }
+
+        viewModel.reset(
+            (local + remoteOnly.get()).sortedBy { -it.id },//full
+            localOnly + remoteOnly.get() + dataDiff//conflict
+        )
     }
 
     Column(

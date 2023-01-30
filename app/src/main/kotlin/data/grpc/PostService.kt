@@ -15,20 +15,37 @@ import unilang.type.none
 import unilang.type.some
 import java.util.*
 
-class PostService(
+class PostService
+internal constructor(
     channel: ManagedChannel,
-    private val getToken: suspend () -> String
+    tokenService: CachedTokenService,
+    private val onNetworkErr: () -> Unit
 ) {
     private val stub = PostServiceGrpcKt.PostServiceCoroutineStub(channel)
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private val getToken = suspend { tokenService.getOne() }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun getOne(id: i64) =
         withContext(Dispatchers.IO) {
+            val token = getToken()
+
+            if (token.isEmpty)
+                return@withContext none()
+
             val req = grpc_code_gen.post.get_one.req {
-                this.token = getToken()
+                this.token = token.get()
                 this.id = id
             }
 
-            val rsp = stub.getOne(req)
+            val result = runCatching { stub.getOne(req) }
+            if (result.isFailure) {
+                onNetworkErr()
+                return@withContext none()
+            }
+
+            val rsp = result.getOrThrow()
 
             if (rsp.ok)
                 PostData(
@@ -42,14 +59,26 @@ class PostService(
                 none()
         }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun getSome(idList: List<i64>) =
         withContext(Dispatchers.IO) {
+            val token = getToken()
+
+            if (token.isEmpty)
+                return@withContext none()
+
             val req = grpc_code_gen.post.get_some.req {
-                this.token = getToken()
+                this.token = token.get()
                 this.idList.addAll(idList)
             }
 
-            val rsp = stub.getSome(req)
+            val result = runCatching { stub.getSome(req) }
+            if (result.isFailure) {
+                onNetworkErr()
+                return@withContext none()
+            }
+
+            val rsp = result.getOrThrow()
 
             rsp.dataListList.map {
                 PostData(
@@ -59,16 +88,28 @@ class PostService(
                     Iso8601(it.createTime).toDate(),
                     Iso8601(it.modifyTime).toDate()
                 )
-            }
+            }.some()
         }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun getAll() =
         withContext(Dispatchers.IO) {
+            val token = getToken()
+
+            if (token.isEmpty)
+                return@withContext none()
+
             val req = grpc_code_gen.post.get_all.req {
-                this.token = getToken()
+                this.token = token.get()
             }
 
-            val rsp = stub.getAll(req)
+            val result = runCatching { stub.getAll(req) }
+            if (result.isFailure) {
+                onNetworkErr()
+                return@withContext none()
+            }
+
+            val rsp = result.getOrThrow()
 
             rsp.dataListList.map {
                 PostData(
@@ -78,33 +119,57 @@ class PostService(
                     Iso8601(it.createTime).toDate(),
                     Iso8601(it.modifyTime).toDate()
                 )
-            }
+            }.some()
         }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun getAllSha256() =
         withContext(Dispatchers.IO) {
+            val token = getToken()
+
+            if (token.isEmpty)
+                return@withContext none()
+
             val req = grpc_code_gen.post.get_all_sha256.req {
-                this.token = getToken()
+                this.token = token.get()
             }
 
-            val rsp = stub.getAllSha256(req)
+            val result = runCatching { stub.getAllSha256(req) }
+            if (result.isFailure) {
+                onNetworkErr()
+                return@withContext none()
+            }
+
+            val rsp = result.getOrThrow()
 
             HashMap<i64, String>().apply {
                 rsp.dataListList.forEach {
                     this[it.id] = it.sha256
                 }
-            }
+            }.some()
         }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun create(title: String, body: String) =
         withContext(Dispatchers.IO) {
+            val token = getToken()
+
+            if (token.isEmpty)
+                return@withContext none()
+
             val req = grpc_code_gen.post.create.req {
-                this.token = getToken()
+                this.token = token.get()
                 this.title = title
                 this.body = body
             }
 
-            val rsp = stub.create(req)
+            val result = runCatching { stub.create(req) }
+            if (result.isFailure) {
+                onNetworkErr()
+                return@withContext none()
+            }
+
+            val rsp = result.getOrThrow()
 
             if (rsp.ok)
                 PostData(
@@ -114,57 +179,91 @@ class PostService(
                     Iso8601(rsp.data.createTime).toDate(),
                     Iso8601(rsp.data.modifyTime).toDate()
                 ).some()
-            else
-                none()
+            else none()
         }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun delete(id: i64) =
         withContext(Dispatchers.IO) {
+            val token = getToken()
+
+            if (token.isEmpty)
+                return@withContext false
+
             val req = grpc_code_gen.post.delete.req {
-                this.token = getToken()
+                this.token = token.get()
                 this.id = id
             }
 
-            val rsp = stub.delete(req)
+            val result = runCatching { stub.delete(req) }
+            if (result.isFailure) {
+                onNetworkErr()
+                return@withContext false
+            }
+
+            val rsp = result.getOrThrow()
 
             rsp.ok
         }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun update(id: i64, title: String, body: String) =
         withContext(Dispatchers.IO) {
+            val token = getToken()
+
+            if (token.isEmpty)
+                return@withContext false
+
             val req = grpc_code_gen.post.update.req {
-                this.token = getToken()
+                this.token = token.get()
                 this.id = id
                 this.title = title
                 this.body = body
             }
 
-            val rsp = stub.update(req)
+            val result = runCatching { stub.update(req) }
+            if (result.isFailure) {
+                onNetworkErr()
+                return@withContext false
+            }
+
+            val rsp = result.getOrThrow()
 
             rsp.ok
         }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun create(data: PostData) = create(data.title, data.body)
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun delete(data: PostData) = delete(data.id)
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend fun update(data: PostData) = update(data.id, data.title, data.body)
 }
 
 object PostServiceSingleton {
-    private var postService: Optional<PostService> = none()
+    private var service: Optional<PostService> = none()
+
+    private fun reset() {
+        if (service.isPresent)
+            service = none()
+    }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    suspend fun getService(ctx: Context) =
+    suspend operator fun invoke(ctx: Context) =
         withContext(Dispatchers.IO) {
-            if (postService.isEmpty)
-                runCatching {
-                    val channel = ChannelSingleton.getChannel(ctx).get()
-                    val getToken = suspend { TokenServiceSingleton.getOne(ctx).get() }
+            if (service.isEmpty) {
+                val channel = ChannelSingleton(ctx)
+                val tokenService = TokenServiceSingleton(ctx)
 
-                    postService = PostService(channel, getToken).some()
-                }
+                service =
+                    if (channel.isPresent && tokenService.isPresent)
+                        PostService(channel.get(), tokenService.get(), ::reset).some()
+                    else
+                        none()
+            }
 
-            postService
+            service
         }
 }

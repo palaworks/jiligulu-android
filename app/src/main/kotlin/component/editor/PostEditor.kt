@@ -73,7 +73,7 @@ fun PostEditor(
 
     suspend fun create() = withContext(Dispatchers.IO) {
         val dao = LocalPostDatabase.getDatabase(ctx).localPostDao()
-        val service = PostServiceSingleton.getService(ctx).get()
+        val service = PostServiceSingleton(ctx).get()
 
         val data = service.create(titleText, bodyText).get()
         dao.insert(data)

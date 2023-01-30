@@ -49,7 +49,7 @@ fun PostDiffCard(
     val ctx = LocalContext.current
 
     suspend fun applyLocal() = withContext(Dispatchers.IO) {
-        val service = PostServiceSingleton.getService(ctx).get()
+        val service = PostServiceSingleton(ctx).get()
         //TODO handle err
         when (conflictType) {
             ConflictType.LocalOnly -> service.create(localData.get())
