@@ -18,6 +18,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import component.screen.*
+import data.ui.CommentEditMode
+import data.ui.PostEditMode
 import global.AppRoute
 import global.bottomNavBarItems
 import kotlinx.coroutines.launch
@@ -124,7 +126,7 @@ fun AppScreen() {
 
                 PostEditScreen(
                     contentPadding = contentPadding,
-                    id = none(),
+                    mode = PostEditMode.Create,
                     navBack = { navTo(AppRoute.POST_LIST) }
                 )
             }
@@ -137,7 +139,7 @@ fun AppScreen() {
                 val id = getIdNavArg(entry)
                 PostEditScreen(
                     contentPadding = contentPadding,
-                    id = id.some(),
+                    mode = PostEditMode.Edit(id),
                     navBack = { navTo(AppRoute.POST_LIST) }
                 )
             }
@@ -170,9 +172,7 @@ fun AppScreen() {
                 val isReply = entry.arguments!!.getBoolean("isReply")
                 CommentEditScreen(
                     contentPadding = contentPadding,
-                    id = none(),
-                    bindingId = bindingId.some(),
-                    isReply = isReply.some(),
+                    mode = CommentEditMode.Create(bindingId, isReply),
                     navBack = { navTo(AppRoute.COMMENT_LIST) }
                 )
             }
@@ -185,9 +185,7 @@ fun AppScreen() {
                 val id = getIdNavArg(entry)
                 CommentEditScreen(
                     contentPadding = contentPadding,
-                    id = id.some(),
-                    bindingId = none(),
-                    isReply = none(),
+                    mode = CommentEditMode.Edit(id),
                     navBack = { navTo(AppRoute.COMMENT_LIST) }
                 )
             }

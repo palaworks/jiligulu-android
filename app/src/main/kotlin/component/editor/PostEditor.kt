@@ -22,13 +22,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import component.NoRipple
 import data.db.LocalPostDbSingleton
-import data.grpc.PostServiceSingleton
+import data.ui.PostData
+import data.ui.PostEditMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
-import unilang.alias.i64
 import java.util.*
 
 @OptIn(ExperimentalTextApi::class)
@@ -36,7 +36,7 @@ import java.util.*
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun PostEditor(
-    id: Optional<i64>,
+    mode: PostEditMode,
     navBack: () -> Unit
 ) {
     val ctx = LocalContext.current
@@ -50,32 +50,39 @@ fun PostEditor(
 
     suspend fun initialize() = withContext(Dispatchers.IO) {
         val dao = LocalPostDbSingleton(ctx).localPostDao()
-        val data = dao.getOne(id.get())
+        val id = (mode as PostEditMode.Edit).id
+        val data = dao.getOne(id)
         titleText = data.title
         bodyText = data.body
         initialized = true
     }
 
-    if (id.isPresent && !initialized)
+    if (mode is PostEditMode.Edit && !initialized)
         coroutineScope.launch { initialize() }
 
     suspend fun update() = withContext(Dispatchers.IO) {
         val dao = LocalPostDbSingleton(ctx).localPostDao()
-        val data = dao.getOne(id.get())
-        dao.update(
-            data.copy(
+        val id = (mode as PostEditMode.Edit).id
+        val data = dao
+            .getOne(id)
+            .copy(
                 title = titleText,
                 body = bodyText,
                 modifyTime = Date()
             )
-        )
+        dao.update(data)
     }
 
     suspend fun create() = withContext(Dispatchers.IO) {
         val dao = LocalPostDbSingleton(ctx).localPostDao()
-        val service = PostServiceSingleton(ctx).get()
-
-        val data = service.create(titleText, bodyText).get()
+        val data =
+            PostData(
+                -1,
+                titleText,
+                bodyText,
+                Date(),
+                Date()
+            )
         dao.insert(data)
     }
 
@@ -91,8 +98,12 @@ fun PostEditor(
                         tint = MaterialTheme.colorScheme.outlineVariant,
                         contentDescription = "Post id",
                     )
+                    val idText = when (mode) {
+                        is PostEditMode.Edit -> mode.id.toString()
+                        is PostEditMode.Create -> "New"
+                    }
                     Text(
-                        text = id.map { it.toString() }.orElse("New"),
+                        text = idText,
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.outlineVariant
                     )
@@ -102,10 +113,10 @@ fun PostEditor(
                     contentPadding = PaddingValues(0.dp),
                     onClick = {
                         coroutineScope.launch {
-                            if (id.isPresent)
-                                update()
-                            else
-                                create()
+                            when (mode) {
+                                is PostEditMode.Edit -> update()
+                                is PostEditMode.Create -> create()
+                            }
                             navBack()
                         }
                     }

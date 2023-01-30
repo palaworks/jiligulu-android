@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import component.editor.CommentEditor
+import data.ui.CommentEditMode
 import unilang.alias.i64
 import java.util.*
 
@@ -16,9 +17,7 @@ import java.util.*
 @Composable
 fun CommentEditScreen(
     contentPadding: PaddingValues,
-    id: Optional<i64>,
-    bindingId: Optional<i64>,
-    isReply: Optional<Boolean>,
+    mode: CommentEditMode,
     navBack: () -> Unit
 ) {
     Column(Modifier.padding(contentPadding)) {
@@ -30,9 +29,7 @@ fun CommentEditScreen(
             Spacer(Modifier.height(10.dp))
 
             CommentEditor(
-                id,
-                bindingId,
-                isReply,
+                mode,
                 navBack
             )
         }

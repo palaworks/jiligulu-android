@@ -22,13 +22,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import component.NoRipple
 import data.db.LocalCommentDbSingleton
-import data.grpc.CommentServiceSingleton
+import data.ui.CommentData
+import data.ui.CommentEditMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
-import unilang.alias.i64
 import java.util.*
 
 @OptIn(ExperimentalTextApi::class)
@@ -36,9 +36,7 @@ import java.util.*
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun CommentEditor(
-    id: Optional<i64>,
-    bindingId: Optional<i64>,
-    isReply: Optional<Boolean>,
+    mode: CommentEditMode,
     navBack: () -> Unit
 ) {
     val ctx = LocalContext.current
@@ -51,30 +49,41 @@ fun CommentEditor(
 
     suspend fun initialize() = withContext(Dispatchers.IO) {
         val dao = LocalCommentDbSingleton(ctx).localCommentDao()
-        val data = dao.getOne(id.get())
+        val id = (mode as CommentEditMode.Edit).id
+        val data = dao.getOne(id)
         bodyText = data.body
         initialized = true
     }
 
-    if (id.isPresent && !initialized)
+    if (mode is CommentEditMode.Edit && !initialized)
         coroutineScope.launch { initialize() }
 
     suspend fun update() = withContext(Dispatchers.IO) {
         val dao = LocalCommentDbSingleton(ctx).localCommentDao()
-        val data = dao.getOne(id.get())
-        dao.update(
-            data.copy(
+        val id = (mode as CommentEditMode.Edit).id
+        val data = dao
+            .getOne(id)
+            .copy(
                 body = bodyText,
                 modifyTime = Date()
             )
-        )
+        dao.update(data)
     }
 
     suspend fun create() = withContext(Dispatchers.IO) {
         val dao = LocalCommentDbSingleton(ctx).localCommentDao()
-        val service = CommentServiceSingleton(ctx).get()
-
-        val data = service.create(bodyText, bindingId.get(), isReply.get()).get()
+        mode as CommentEditMode.Create
+        val bindingId = mode.bindingId
+        val isReply = mode.isReply
+        val data =
+            CommentData(
+                -1,
+                bodyText,
+                bindingId,
+                isReply,
+                Date(),
+                Date()
+            )
         dao.insert(data)
     }
 
@@ -90,8 +99,12 @@ fun CommentEditor(
                         tint = MaterialTheme.colorScheme.outlineVariant,
                         contentDescription = "Comment id",
                     )
+                    val idText = when (mode) {
+                        is CommentEditMode.Edit -> mode.id.toString()
+                        is CommentEditMode.Create -> "New"
+                    }
                     Text(
-                        text = id.map { it.toString() }.orElse("New"),
+                        text = idText,
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.outlineVariant
                     )
@@ -101,10 +114,10 @@ fun CommentEditor(
                     contentPadding = PaddingValues(0.dp),
                     onClick = {
                         coroutineScope.launch {
-                            if (id.isPresent)
-                                update()
-                            else
-                                create()
+                            when (mode) {
+                                is CommentEditMode.Edit -> update()
+                                is CommentEditMode.Create -> create()
+                            }
                             navBack()
                         }
                     }
