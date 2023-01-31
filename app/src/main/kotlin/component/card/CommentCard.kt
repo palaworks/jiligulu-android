@@ -68,14 +68,14 @@ fun CommentCard(
         if (dao.maybe(data.id) != null)
             withContext(Dispatchers.Main) { navToEditor() }
         else
-            showSnackBar("No local data: please resolve conflict first")
+            showSnackBar("No local data: please resolve conflict first.")
     }
     fun tryDoDelete() = coroutineScope.launch {
         val dao = LocalCommentDbSingleton(ctx).localCommentDao()
         if (dao.maybe(data.id) != null)
             showDeleteDialog = true
         else
-            showSnackBar("No local data: please resolve conflict first")
+            showSnackBar("No local data: please resolve conflict first.")
     }
 
     Card(

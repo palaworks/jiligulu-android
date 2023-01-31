@@ -20,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ui.FillMaxSizeModifier
+import ui.rememberMutStateOf
 import ui.state.PostListScreenViewModel
 import unilang.alias.i64
 import unilang.type.copyUnless
@@ -38,7 +39,7 @@ fun PostListScreen(
     val ctx = LocalContext.current
     val uiState by viewModel.state.collectAsState()
 
-    suspend fun load() = withContext(Dispatchers.IO) {
+    suspend fun load() {
         val dao = LocalPostDbSingleton(ctx).localPostDao()
         val service = PostServiceSingleton(ctx).get()
 
@@ -48,7 +49,7 @@ fun PostListScreen(
         if (remoteIdSha256Map.isEmpty) {
             showSnackBar("Network error: failed to load remote data.")
             viewModel.reset(local, listOf())
-            return@withContext
+            return
         }
 
         val localOnly = mutableListOf<PostData>()
@@ -73,7 +74,7 @@ fun PostListScreen(
         if (remoteOnly.isEmpty) {
             showSnackBar("Network error: failed to load remote data.")
             viewModel.reset(local, listOf())
-            return@withContext
+            return
         }
 
         viewModel.reset(
@@ -102,19 +103,9 @@ fun PostListScreen(
             render = { data ->
                 val id = data.id
                 PostCard(
-                    {
-                        navToPostEdit(id)
-                    },
-                    {
-                        navToCommentCreate(id)
-                    },
-                    afterConflictResolved = { isDeleted ->
-                        //TODO need to simplify
-                        if (isDeleted)
-                            viewModel.remove(id)
-                        else
-                            viewModel.resetConflict(uiState.conflict.copyUnless { it.id == id })
-                    },
+                    { navToPostEdit(id) },
+                    { navToCommentCreate(id) },
+                    afterConflictResolved = { coroutineScope.launch { load() } },
                     showSnackBar,
                     doDelete = { deleteLocal(id) },
                     data,
@@ -123,9 +114,4 @@ fun PostListScreen(
             }
         )
     }
-}
-
-@Preview
-@Composable
-fun PostScreenPreview() {
 }

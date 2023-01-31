@@ -61,7 +61,7 @@ fun PostDiffCard(
 
                 val remoteCreated = service.create(localData.get())
                 if (remoteCreated.isEmpty) {
-                    showSnackBar("Operation failed: check your network status")
+                    showSnackBar("Operation failed: please check your network status.")
                     false
                 } else {
                     val oldId = localData.get().id

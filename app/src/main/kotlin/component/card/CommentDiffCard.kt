@@ -60,7 +60,7 @@ fun CommentDiffCard(
 
                 val remoteCreated = service.create(localData.get())
                 if (remoteCreated.isEmpty) {
-                    showSnackBar("Operation failed: invalid binding target or network broken")
+                    showSnackBar("Operation failed: invalid binding target or network broken.")
                     false
                 } else {
                     val oldId = localData.get().id

@@ -1,5 +1,6 @@
 package component.screen
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import component.CardList
+import component.TryPullDownInfo
 import component.card.CommentCard
 import data.db.LocalCommentDbSingleton
 import data.grpc.CommentServiceSingleton
@@ -19,12 +21,14 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ui.FillMaxSizeModifier
+import ui.rememberMutStateOf
 import ui.state.CommentListScreenViewModel
 import unilang.alias.i64
 import unilang.type.copyUnless
 import java.util.*
 import kotlin.coroutines.coroutineContext
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun CommentListScreen(
@@ -37,7 +41,7 @@ fun CommentListScreen(
     val ctx = LocalContext.current
     val uiState by viewModel.state.collectAsState()
 
-    suspend fun load() = withContext(Dispatchers.IO) {
+    suspend fun load() {
         val dao = LocalCommentDbSingleton(ctx).localCommentDao()
         val service = CommentServiceSingleton(ctx).get()
 
@@ -47,7 +51,7 @@ fun CommentListScreen(
         if (remoteIdSha256Map.isEmpty) {
             showSnackBar("Network error: failed to load remote data.")
             viewModel.reset(local, listOf())
-            return@withContext
+            return
         }
 
         val localOnly = mutableListOf<CommentData>()
@@ -72,7 +76,7 @@ fun CommentListScreen(
         if (remoteOnly.isEmpty) {
             showSnackBar("Network error: failed to load remote data.")
             viewModel.reset(local, listOf())
-            return@withContext
+            return
         }
 
         viewModel.reset(
@@ -101,19 +105,9 @@ fun CommentListScreen(
             render = { data ->
                 val id = data.id
                 CommentCard(
-                    {
-                        navToCommentEdit(id)
-                    },
-                    {
-                        navToCommentCreate(id)
-                    },
-                    afterConflictResolved = { isDeleted ->
-                        //TODO need to simplify
-                        if (isDeleted)
-                            viewModel.remove(id)
-                        else
-                            viewModel.resetConflict(uiState.conflict.copyUnless { it.id == id })
-                    },
+                    { navToCommentEdit(id) },
+                    { navToCommentCreate(id) },
+                    afterConflictResolved = { coroutineScope.launch { load() } },
                     showSnackBar,
                     doDelete = { deleteLocal(id) },
                     data,

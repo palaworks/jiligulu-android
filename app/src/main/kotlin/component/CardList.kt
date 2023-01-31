@@ -32,7 +32,6 @@ fun <T> CardList(
 ) {
     val refreshScope = rememberCoroutineScope()
     var refreshing by rememberMutStateOf(false)
-    val ctx = LocalContext.current
 
     fun refresh() = refreshScope.launch {
         refreshing = true
@@ -41,15 +40,15 @@ fun <T> CardList(
         refreshing = false
     }
 
-    val state = rememberPullRefreshState(refreshing, ::refresh)
+    val refreshState = rememberPullRefreshState(refreshing, ::refresh)
 
-    if (data.isEmpty())
+    if (data.isEmpty() && !refreshing)
         refresh()
 
-    Box(FillMaxSizeModifier.pullRefresh(state)) {
+    Box(FillMaxSizeModifier.pullRefresh(refreshState)) {
         if (data.isEmpty())
             TryPullDownInfo()
-        else {
+        else
             LazyColumn {
                 item {
                     Spacer(Modifier.height(10.dp))
@@ -61,11 +60,10 @@ fun <T> CardList(
                     }
                 }
             }
-        }
 
         PullRefreshIndicator(
             refreshing = refreshing,
-            state = state,
+            state = refreshState,
             modifier = Modifier.align(Alignment.TopCenter),
         )
     }
