@@ -65,26 +65,28 @@ fun Settings(
             )
             Spacer(Modifier.height(20.dp))
             SettingItem(
+                onSave = {
+                    setting.map { old ->
+                        save(old.copy(grpcHost = it))
+                    }
+                },
                 "Host",
                 "E.g., https://for.example.domain",
                 false,
                 setting.get().grpcHost.orEmpty(),
-            ) {
-                setting.map { old ->
-                    save(old.copy(grpcHost = it))
-                }
-            }
+            )
             Spacer(Modifier.height(20.dp))
             SettingItem(
+                onSave = {
+                    setting.map { old ->
+                        save(old.copy(grpcPort = it.toInt()))
+                    }
+                },
                 "Port",
                 "E.g., 40040",
                 false,
                 setting.get().grpcPort.map { it.toString() }.or("")
-            ) {
-                setting.map { old ->
-                    save(old.copy(grpcPort = it.toInt()))
-                }
-            }
+            )
 
             Spacer(Modifier.height(40.dp))
 
@@ -96,25 +98,27 @@ fun Settings(
             )
             Spacer(Modifier.height(20.dp))
             SettingItem(
+                onSave = {
+                    setting.map { old ->
+                        save(old.copy(pilipalaUid = it.toLong()))
+                    }
+                },
                 "User id",
                 "E.g., 1001",
                 false,
                 setting.get().pilipalaUid.map { it.toString() }.or("")
-            ) {
-                setting.map { old ->
-                    save(old.copy(pilipalaUid = it.toLong()))
-                }
-            }
+            )
             Spacer(Modifier.height(20.dp))
             SettingItem(
+                onSave = {
+                    setting.map { old ->
+                        save(old.copy(pilipalaPwd = it))
+                    }
+                },
                 "Password",
                 "E.g., 114514",
                 true,
                 setting.get().pilipalaPwd.orEmpty(),
-            ) {
-                setting.map { old ->
-                    save(old.copy(pilipalaPwd = it))
-                }
-            }
+            )
         }
 }

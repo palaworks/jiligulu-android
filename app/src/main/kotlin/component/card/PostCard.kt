@@ -1,10 +1,10 @@
 package component.card
 
-import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import component.dialog.DeleteConfirmDialog
 import component.dialog.PostDiffDialog
 import data.db.LocalPostDbSingleton
 import data.ui.PostData
@@ -34,19 +35,19 @@ import unilang.time.format
 import unilang.time.yyMdHmm
 import java.util.*
 
-@OptIn(ExperimentalTextApi::class)
+@OptIn(ExperimentalTextApi::class, ExperimentalFoundationApi::class)
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun PostCard(
-    navToPostEdit: () -> Unit,
+    navToEditor: () -> Unit,
     navToCommentCreate: () -> Unit,
+    afterConflictResolved: (isDeleted: Boolean) -> Unit,
+    showSnackBar: (String) -> Unit,
+    doDelete: () -> Unit,
     data: PostData,
     existDiff: Boolean,
-    afterConflictResolved: (isDeleted: Boolean) -> Unit,
-    showSnackBar: (String) -> Unit
 ) {
     var showDiffDialog by rememberMutStateOf(false)
-
     if (showDiffDialog)
         PostDiffDialog(
             data.id,
@@ -56,11 +57,29 @@ fun PostCard(
             showSnackBar
         )
 
+    var showDeleteDialog by rememberMutStateOf(false)
+    if (showDeleteDialog)
+        DeleteConfirmDialog(
+            title = "Delete post #${data.id}",
+            onConfirm = doDelete,
+            onDismiss = { showDeleteDialog = false }
+        )
+
     val ctx = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    fun ifExistLocalThenEdit() = coroutineScope.launch {
+    fun tryDoEdit() = coroutineScope.launch {
         val dao = LocalPostDbSingleton(ctx).localPostDao()
-        if (dao.maybe(data.id) != null) withContext(Dispatchers.Main) { navToPostEdit() }
+        if (dao.maybe(data.id) != null)
+            withContext(Dispatchers.Main) { navToEditor() }
+        else
+            showSnackBar("No local data: please resolve conflict first")
+    }
+    fun tryDoDelete() = coroutineScope.launch {
+        val dao = LocalPostDbSingleton(ctx).localPostDao()
+        if (dao.maybe(data.id) != null)
+            showDeleteDialog = true
+        else
+            showSnackBar("No local data: please resolve conflict first")
     }
 
     val isNote = data.title.isEmpty()
@@ -89,7 +108,10 @@ fun PostCard(
     }
 
     Card(
-        modifier = Modifier.clickable { ifExistLocalThenEdit() },
+        modifier = Modifier.combinedClickable(
+            onClick = { tryDoEdit() },
+            onLongClick = { tryDoDelete() }
+        ),
         colors = CardDefaults.cardColors(
             MaterialTheme.colorScheme.surfaceVariant
         )
@@ -197,28 +219,25 @@ fun PostCard(
 fun PostCardPreview() {
     Column {
         PostCard(
-            {}, {},
+            {}, {}, {}, {}, {},
             PostData(
                 12384, foxDog, foxDog, Date(), Date()
             ),
             true,
-            {}, {},
         )
         PostCard(
-            {}, {},
+            {}, {}, {}, {}, {},
             PostData(
                 12384, foxDog, foxDogX3, Date(), Date()
             ),
             false,
-            {}, {},
         )
         PostCard(
-            {}, {},
+            {}, {}, {}, {}, {},
             PostData(
                 12384, "", foxDogX3, Date(), Date()
             ),
             false,
-            {}, {},
         )
     }
 }

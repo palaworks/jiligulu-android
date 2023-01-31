@@ -17,6 +17,7 @@ import data.grpc.PostServiceSingleton
 import data.ui.PostData
 import data.ui.sha256
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ui.FillMaxSizeModifier
 import ui.state.PostListScreenViewModel
@@ -81,6 +82,15 @@ fun PostListScreen(
         )
     }
 
+    val coroutineScope = rememberCoroutineScope()
+    fun deleteLocal(id: i64) = coroutineScope.launch {
+        withContext(Dispatchers.IO) {
+            val dao = LocalPostDbSingleton(ctx).localPostDao()
+            dao.delete(id)
+        }
+        load()
+    }
+
     Column(
         FillMaxSizeModifier
             .padding(contentPadding)
@@ -88,9 +98,7 @@ fun PostListScreen(
     ) {
         CardList(
             uiState.full,
-            onRefresh = {
-                load()
-            },
+            doRefresh = ::load,
             render = { data ->
                 val id = data.id
                 PostCard(
@@ -100,15 +108,17 @@ fun PostListScreen(
                     {
                         navToCommentCreate(id)
                     },
-                    data,
-                    uiState.conflict.any { it.id == id },
-                    { isDeleted ->
+                    afterConflictResolved = { isDeleted ->
+                        //TODO need to simplify
                         if (isDeleted)
                             viewModel.remove(id)
                         else
                             viewModel.resetConflict(uiState.conflict.copyUnless { it.id == id })
                     },
-                    showSnackBar
+                    showSnackBar,
+                    doDelete = { deleteLocal(id) },
+                    data,
+                    uiState.conflict.any { it.id == id },
                 )
             }
         )

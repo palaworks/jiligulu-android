@@ -14,11 +14,11 @@ import ui.rememberMutStateOf
 
 @Composable
 fun SettingItem(
+    onSave: (String) -> Unit,
     title: String,
     hint: String,
     passwordMode: Boolean,
     init: String,
-    onSave: (String) -> Unit
 ) {
     var settingValue by rememberMutStateOf(init)
     var openDialog by rememberMutStateOf(false)
@@ -57,10 +57,10 @@ fun SettingItem(
 @Composable
 fun SettingItemPreview() {
     SettingItem(
+        {},
         "Password",
         "E.g., 114514",
         true,
         "foo"
-    ) {
-    }
+    )
 }

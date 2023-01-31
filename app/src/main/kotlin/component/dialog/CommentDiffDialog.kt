@@ -64,8 +64,6 @@ fun CommentDiffDialog(
             },
             text = {
                 CommentDiffCard(
-                    localData,
-                    remoteData,
                     {
                         afterApplyLocal(localData.isEmpty)
                         onDismissRequest()
@@ -74,7 +72,9 @@ fun CommentDiffDialog(
                         afterApplyRemote(remoteData.isEmpty)
                         onDismissRequest()
                     },
-                    showSnackBar
+                    showSnackBar,
+                    localData,
+                    remoteData,
                 )
             },
             onDismissRequest = onDismissRequest,

@@ -13,12 +13,12 @@ import ui.rememberMutStateOf
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
     title: String,
     hint: String,
     initial: String,
     passwordMode: Boolean,
-    onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit,
 ) {
     var text by rememberMutStateOf(initial)
 
@@ -64,10 +64,10 @@ fun SettingDialog(
 @Composable
 fun SettingDialogPreview() {
     SettingDialog(
+        {}, {},
         "Hello world!",
         "The quick brown fox jumps over the lazy dog.",
         "",
         false,
-        {},
-    ) {}
+    )
 }

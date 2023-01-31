@@ -27,7 +27,7 @@ import java.util.*
 @Composable
 fun <T> CardList(
     data: List<T>,
-    onRefresh: suspend () -> Unit,
+    doRefresh: suspend () -> Unit,
     render: @Composable (T) -> Unit,
 ) {
     val refreshScope = rememberCoroutineScope()
@@ -36,7 +36,7 @@ fun <T> CardList(
 
     fun refresh() = refreshScope.launch {
         refreshing = true
-        onRefresh()
+        doRefresh()
         delay(500)
         refreshing = false
     }

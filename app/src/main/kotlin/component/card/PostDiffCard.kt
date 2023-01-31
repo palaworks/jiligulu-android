@@ -23,22 +23,24 @@ import data.ui.ConflictType
 import data.ui.PostData
 import data.ui.sha256
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ui.FillMaxWidthModifier
 import unilang.time.format
 import unilang.time.yyMdHmm
+import unilang.type.whenFalse
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("SimpleDateFormat")
 @Composable
 fun PostDiffCard(
-    localData: Optional<PostData>,
-    remoteData: Optional<PostData>,
     afterApplyLocal: () -> Unit,
     afterApplyRemote: () -> Unit,
-    showSnackBar: (String) -> Unit
+    showSnackBar: (String) -> Unit,
+    localData: Optional<PostData>,
+    remoteData: Optional<PostData>,
 ) {
     val conflictType = when {
         localData.isPresent && remoteData.isEmpty -> ConflictType.LocalOnly
@@ -50,9 +52,8 @@ fun PostDiffCard(
     val coroutineScope = rememberCoroutineScope()
     val ctx = LocalContext.current
 
-    suspend fun applyLocal() = withContext(Dispatchers.IO) {
+    fun applyLocal() = coroutineScope.launch {
         val service = PostServiceSingleton(ctx).get()
-        //TODO handle err
         when (conflictType) {
             ConflictType.LocalOnly -> {
                 val postDao = LocalPostDbSingleton(ctx).localPostDao()
@@ -61,27 +62,29 @@ fun PostDiffCard(
                 val remoteCreated = service.create(localData.get())
                 if (remoteCreated.isEmpty) {
                     showSnackBar("Operation failed: check your network status")
-                    return@withContext
+                    false
+                } else {
+                    val oldId = localData.get().id
+                    val newId = remoteCreated.get().id
+                    postDao.chId(oldId, newId)
+                    commentDao.chBindingId(oldId, newId, false)
+                    true
                 }
-
-                val oldId = localData.get().id
-                val newId = remoteCreated.get().id
-                postDao.chId(oldId, newId)
-                commentDao.chBindingId(oldId, newId, false)
             }
             ConflictType.RemoteOnly -> service.delete(remoteData.get())
             ConflictType.DataDiff -> service.update(localData.get())
-        }
+        }.whenFalse(::cancel)
+        afterApplyLocal()
     }
 
-    suspend fun applyRemote() = withContext(Dispatchers.IO) {
+    fun applyRemote() = coroutineScope.launch {
         val dao = LocalPostDbSingleton(ctx).localPostDao()
-        //TODO handle err
         when (conflictType) {
             ConflictType.LocalOnly -> dao.delete(localData.get().id)
             ConflictType.RemoteOnly -> dao.insert(remoteData.get())
             ConflictType.DataDiff -> dao.update(remoteData.get())
         }
+        afterApplyRemote()
     }
 
     Column(FillMaxWidthModifier) {
@@ -254,12 +257,7 @@ fun PostDiffCard(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Button(
-                onClick = {
-                    coroutineScope.launch {
-                        applyLocal()
-                        afterApplyLocal()
-                    }
-                },
+                onClick = ::applyLocal,
                 contentPadding = PaddingValues(horizontal = 10.dp)
             ) {
                 val (text, icon) = when (conflictType) {
@@ -281,12 +279,7 @@ fun PostDiffCard(
             }
 
             Button(
-                onClick = {
-                    coroutineScope.launch {
-                        applyRemote()
-                        afterApplyRemote()
-                    }
-                },
+                onClick = ::applyRemote,
                 contentPadding = PaddingValues(horizontal = 10.dp)
             ) {
                 val (text, icon) = when (conflictType) {

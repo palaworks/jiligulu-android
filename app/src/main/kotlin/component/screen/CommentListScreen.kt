@@ -15,12 +15,15 @@ import data.grpc.CommentServiceSingleton
 import data.ui.CommentData
 import data.ui.sha256
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ui.FillMaxSizeModifier
 import ui.state.CommentListScreenViewModel
 import unilang.alias.i64
 import unilang.type.copyUnless
 import java.util.*
+import kotlin.coroutines.coroutineContext
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
@@ -78,6 +81,15 @@ fun CommentListScreen(
         )
     }
 
+    val coroutineScope = rememberCoroutineScope()
+    fun deleteLocal(id: i64) = coroutineScope.launch {
+        withContext(Dispatchers.IO) {
+            val dao = LocalCommentDbSingleton(ctx).localCommentDao()
+            dao.delete(id)
+        }
+        load()
+    }
+
     Column(
         FillMaxSizeModifier
             .padding(contentPadding)
@@ -85,7 +97,7 @@ fun CommentListScreen(
     ) {
         CardList(
             uiState.full,
-            onRefresh = ::load,
+            doRefresh = ::load,
             render = { data ->
                 val id = data.id
                 CommentCard(
@@ -95,15 +107,17 @@ fun CommentListScreen(
                     {
                         navToCommentCreate(id)
                     },
-                    data,
-                    uiState.conflict.any { it.id == id },
-                    { isDeleted ->
+                    afterConflictResolved = { isDeleted ->
+                        //TODO need to simplify
                         if (isDeleted)
                             viewModel.remove(id)
                         else
                             viewModel.resetConflict(uiState.conflict.copyUnless { it.id == id })
                     },
-                    showSnackBar
+                    showSnackBar,
+                    doDelete = { deleteLocal(id) },
+                    data,
+                    uiState.conflict.any { it.id == id },
                 )
             }
         )

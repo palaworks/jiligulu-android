@@ -22,22 +22,25 @@ import data.ui.CommentData
 import data.ui.ConflictType
 import data.ui.sha256
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ui.FillMaxWidthModifier
 import unilang.time.format
 import unilang.time.yyMdHmm
+import unilang.type.then
+import unilang.type.whenFalse
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @SuppressLint("SimpleDateFormat")
 @Composable
 fun CommentDiffCard(
-    localData: Optional<CommentData>,
-    remoteData: Optional<CommentData>,
     afterApplyLocal: () -> Unit,
     afterApplyRemote: () -> Unit,
-    showSnackBar: (String) -> Unit
+    showSnackBar: (String) -> Unit,
+    localData: Optional<CommentData>,
+    remoteData: Optional<CommentData>,
 ) {
     val conflictType = when {
         localData.isPresent && remoteData.isEmpty -> ConflictType.LocalOnly
@@ -49,37 +52,38 @@ fun CommentDiffCard(
     val coroutineScope = rememberCoroutineScope()
     val ctx = LocalContext.current
 
-    suspend fun applyLocal() = withContext(Dispatchers.IO) {
+    fun applyLocal() = coroutineScope.launch {
         val service = CommentServiceSingleton(ctx).get()
-        //TODO handle err
         when (conflictType) {
             ConflictType.LocalOnly -> {
                 val dao = LocalCommentDbSingleton(ctx).localCommentDao()
 
                 val remoteCreated = service.create(localData.get())
                 if (remoteCreated.isEmpty) {
-                    showSnackBar("Operation failed: try to resolve another or check your network status")
-                    return@withContext
+                    showSnackBar("Operation failed: invalid binding target or network broken")
+                    false
+                } else {
+                    val oldId = localData.get().id
+                    val newId = remoteCreated.get().id
+                    dao.chId(oldId, newId)
+                    dao.chBindingId(oldId, newId, true)
+                    true
                 }
-
-                val oldId = localData.get().id
-                val newId = remoteCreated.get().id
-                dao.chId(oldId, newId)
-                dao.chBindingId(oldId, newId, true)
             }
             ConflictType.RemoteOnly -> service.delete(remoteData.get())
             ConflictType.DataDiff -> service.update(localData.get())
-        }
+        }.whenFalse(::cancel)
+        afterApplyLocal()
     }
 
-    suspend fun applyRemote() = withContext(Dispatchers.IO) {
+    fun applyRemote() = coroutineScope.launch {
         val dao = LocalCommentDbSingleton(ctx).localCommentDao()
-        //TODO handle err
         when (conflictType) {
             ConflictType.LocalOnly -> dao.delete(localData.get().id)
             ConflictType.RemoteOnly -> dao.insert(remoteData.get())
             ConflictType.DataDiff -> dao.update(remoteData.get())
         }
+        afterApplyRemote()
     }
 
     Column(FillMaxWidthModifier) {
@@ -217,12 +221,7 @@ fun CommentDiffCard(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Button(
-                onClick = {
-                    coroutineScope.launch {
-                        applyLocal()
-                        afterApplyLocal()
-                    }
-                },
+                onClick = ::applyLocal,
                 contentPadding = PaddingValues(horizontal = 10.dp)
             ) {
                 val (text, icon) = when (conflictType) {
@@ -244,12 +243,7 @@ fun CommentDiffCard(
             }
 
             Button(
-                onClick = {
-                    coroutineScope.launch {
-                        applyRemote()
-                        afterApplyRemote()
-                    }
-                },
+                onClick = ::applyRemote,
                 contentPadding = PaddingValues(horizontal = 10.dp)
             ) {
                 val (text, icon) = when (conflictType) {

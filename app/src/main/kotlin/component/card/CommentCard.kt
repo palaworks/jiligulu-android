@@ -1,11 +1,8 @@
 package component.card
 
-import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -22,6 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import component.dialog.CommentDiffDialog
+import component.dialog.DeleteConfirmDialog
 import data.db.LocalCommentDbSingleton
 import data.ui.CommentData
 import kotlinx.coroutines.Dispatchers
@@ -33,19 +31,19 @@ import unilang.time.format
 import unilang.time.yyMdHmm
 import java.util.*
 
-@OptIn(ExperimentalTextApi::class)
+@OptIn(ExperimentalTextApi::class, ExperimentalFoundationApi::class)
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun CommentCard(
-    navToCommentEdit: () -> Unit,
+    navToEditor: () -> Unit,
     navToCommentCreate: () -> Unit,
+    afterConflictResolved: (isDeleted: Boolean) -> Unit,
+    showSnackBar: (String) -> Unit,
+    doDelete: () -> Unit,
     data: CommentData,
     existDiff: Boolean,
-    afterConflictResolved: (isDeleted: Boolean) -> Unit,
-    showSnackBar: (String) -> Unit
 ) {
     var showDiffDialog by rememberMutStateOf(false)
-
     if (showDiffDialog)
         CommentDiffDialog(
             data.id,
@@ -55,17 +53,36 @@ fun CommentCard(
             showSnackBar
         )
 
+    var showDeleteDialog by rememberMutStateOf(false)
+    if (showDeleteDialog)
+        DeleteConfirmDialog(
+            title = "Delete comment #${data.id}",
+            onConfirm = doDelete,
+            onDismiss = { showDeleteDialog = false }
+        )
+
     val ctx = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    suspend fun ifExistLocalThenEdit() = withContext(Dispatchers.IO) {
+    fun tryDoEdit() = coroutineScope.launch {
         val dao = LocalCommentDbSingleton(ctx).localCommentDao()
         if (dao.maybe(data.id) != null)
-            withContext(Dispatchers.Main) { navToCommentEdit() }
+            withContext(Dispatchers.Main) { navToEditor() }
+        else
+            showSnackBar("No local data: please resolve conflict first")
+    }
+    fun tryDoDelete() = coroutineScope.launch {
+        val dao = LocalCommentDbSingleton(ctx).localCommentDao()
+        if (dao.maybe(data.id) != null)
+            showDeleteDialog = true
+        else
+            showSnackBar("No local data: please resolve conflict first")
     }
 
     Card(
-        modifier = Modifier
-            .clickable { coroutineScope.launch { ifExistLocalThenEdit() } },
+        modifier = Modifier.combinedClickable(
+            onClick = { tryDoEdit() },
+            onLongClick = { tryDoDelete() }
+        ),
         colors = CardDefaults.cardColors(
             MaterialTheme.colorScheme.surfaceVariant
         )
@@ -214,7 +231,7 @@ fun CommentCard(
 fun CommentCardPreview() {
     Column {
         CommentCard(
-            {}, {},
+            {}, {}, {}, {}, {},
             CommentData(
                 testId,
                 foxDog,
@@ -224,10 +241,9 @@ fun CommentCardPreview() {
                 Date()
             ),
             true,
-            {}, {},
         )
         CommentCard(
-            {}, {},
+            {}, {}, {}, {}, {},
             CommentData(
                 testId,
                 foxDogX3,
@@ -237,7 +253,6 @@ fun CommentCardPreview() {
                 Date()
             ),
             false,
-            {}, {},
         )
     }
 }
