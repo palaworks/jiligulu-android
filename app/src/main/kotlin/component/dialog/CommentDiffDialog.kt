@@ -28,8 +28,9 @@ import java.util.*
 fun CommentDiffDialog(
     id: i64,
     onDismissRequest: () -> Unit,
-    afterApplyLocal: () -> Unit,
-    afterApplyRemote: () -> Unit
+    afterApplyLocal: (deleteRemote:Boolean) -> Unit,
+    afterApplyRemote: (deleteLocal:Boolean) -> Unit,
+    showSnackBar: (String) -> Unit
 ) {
     val ctx = LocalContext.current
     var initialized by rememberMutStateOf(false)
@@ -66,13 +67,14 @@ fun CommentDiffDialog(
                     localData,
                     remoteData,
                     {
-                        afterApplyLocal()
+                        afterApplyLocal(localData.isEmpty)
                         onDismissRequest()
                     },
                     {
-                        afterApplyRemote()
+                        afterApplyRemote(remoteData.isEmpty)
                         onDismissRequest()
-                    }
+                    },
+                    showSnackBar
                 )
             },
             onDismissRequest = onDismissRequest,

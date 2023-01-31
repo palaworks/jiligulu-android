@@ -43,7 +43,7 @@ fun CommentListScreen(
         val remoteIdSha256Map = service.getAllSha256()
         if (remoteIdSha256Map.isEmpty) {
             showSnackBar("Network error: failed to load remote data.")
-            viewModel.reset(local.sortedBy { -it.id }, listOf())
+            viewModel.reset(local.sortedBy { it.createTime }.reversed(), listOf())
             return@withContext
         }
 
@@ -68,12 +68,12 @@ fun CommentListScreen(
 
         if (remoteOnly.isEmpty) {
             showSnackBar("Network error: failed to load remote data.")
-            viewModel.reset(local.sortedBy { -it.id }, listOf())
+            viewModel.reset(local.sortedBy { it.createTime }.reversed(), listOf())
             return@withContext
         }
 
         viewModel.reset(
-            (local + remoteOnly.get()).sortedBy { -it.id },//full
+            (local + remoteOnly.get()).sortedBy { it.createTime }.reversed(),//full
             localOnly + remoteOnly.get() + dataDiff//conflict
         )
     }
@@ -97,12 +97,16 @@ fun CommentListScreen(
                     },
                     data,
                     uiState.conflict.any { it.id == id },
-                    {
-                        viewModel.resetConflict(uiState.conflict.copyUnless { it.id == id })
+                    { isDeleted ->
+                        if (isDeleted)
+                            viewModel.reset(
+                                uiState.full.copyUnless { it.id == id },
+                                uiState.conflict.copyUnless { it.id == id }
+                            )
+                        else
+                            viewModel.resetConflict(uiState.conflict.copyUnless { it.id == id })
                     },
-                    {
-                        viewModel.resetConflict(uiState.conflict.copyUnless { it.id == id })
-                    },
+                    showSnackBar
                 )
             }
         )

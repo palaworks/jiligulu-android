@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import data.db.LocalCommentDbSingleton
 import data.db.LocalPostDbSingleton
 import data.grpc.PostServiceSingleton
 import data.ui.ConflictType
@@ -37,6 +38,7 @@ fun PostDiffCard(
     remoteData: Optional<PostData>,
     afterApplyLocal: () -> Unit,
     afterApplyRemote: () -> Unit,
+    showSnackBar: (String) -> Unit
 ) {
     val conflictType = when {
         localData.isPresent && remoteData.isEmpty -> ConflictType.LocalOnly
@@ -52,7 +54,21 @@ fun PostDiffCard(
         val service = PostServiceSingleton(ctx).get()
         //TODO handle err
         when (conflictType) {
-            ConflictType.LocalOnly -> service.create(localData.get())
+            ConflictType.LocalOnly -> {
+                val postDao = LocalPostDbSingleton(ctx).localPostDao()
+                val commentDao = LocalCommentDbSingleton(ctx).localCommentDao()
+
+                val remoteCreated = service.create(localData.get())
+                if (remoteCreated.isEmpty) {
+                    showSnackBar("Operation failed: check your network status")
+                    return@withContext
+                }
+
+                val oldId = localData.get().id
+                val newId = remoteCreated.get().id
+                postDao.chId(oldId, newId)
+                commentDao.chBindingId(oldId, newId, false)
+            }
             ConflictType.RemoteOnly -> service.delete(remoteData.get())
             ConflictType.DataDiff -> service.update(localData.get())
         }
@@ -275,7 +291,7 @@ fun PostDiffCard(
             ) {
                 val (text, icon) = when (conflictType) {
                     ConflictType.LocalOnly -> Pair(
-                        "Delete Remote",
+                        "Delete Local",
                         Icons.Rounded.Delete
                     )
                     else -> Pair(

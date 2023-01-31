@@ -37,6 +37,7 @@ fun CommentDiffCard(
     remoteData: Optional<CommentData>,
     afterApplyLocal: () -> Unit,
     afterApplyRemote: () -> Unit,
+    showSnackBar: (String) -> Unit
 ) {
     val conflictType = when {
         localData.isPresent && remoteData.isEmpty -> ConflictType.LocalOnly
@@ -52,7 +53,20 @@ fun CommentDiffCard(
         val service = CommentServiceSingleton(ctx).get()
         //TODO handle err
         when (conflictType) {
-            ConflictType.LocalOnly -> service.create(localData.get())
+            ConflictType.LocalOnly -> {
+                val dao = LocalCommentDbSingleton(ctx).localCommentDao()
+
+                val remoteCreated = service.create(localData.get())
+                if (remoteCreated.isEmpty) {
+                    showSnackBar("Operation failed: try to resolve another or check your network status")
+                    return@withContext
+                }
+
+                val oldId = localData.get().id
+                val newId = remoteCreated.get().id
+                dao.chId(oldId, newId)
+                dao.chBindingId(oldId, newId, true)
+            }
             ConflictType.RemoteOnly -> service.delete(remoteData.get())
             ConflictType.DataDiff -> service.update(localData.get())
         }
@@ -240,7 +254,7 @@ fun CommentDiffCard(
             ) {
                 val (text, icon) = when (conflictType) {
                     ConflictType.LocalOnly -> Pair(
-                        "Delete Remote",
+                        "Delete Local",
                         Icons.Rounded.Delete
                     )
                     else -> Pair(

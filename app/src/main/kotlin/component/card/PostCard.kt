@@ -42,14 +42,19 @@ fun PostCard(
     navToCommentCreate: () -> Unit,
     data: PostData,
     existDiff: Boolean,
-    afterApplyLocal: () -> Unit,
-    afterApplyRemote: () -> Unit,
+    afterConflictResolved: (isDeleted: Boolean) -> Unit,
+    showSnackBar: (String) -> Unit
 ) {
     var showDiffDialog by rememberMutStateOf(false)
 
-    if (showDiffDialog) PostDiffDialog(
-        data.id, { showDiffDialog = false }, afterApplyLocal, afterApplyRemote
-    )
+    if (showDiffDialog)
+        PostDiffDialog(
+            data.id,
+            { showDiffDialog = false },
+            afterConflictResolved,
+            afterConflictResolved,
+            showSnackBar
+        )
 
     val ctx = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -68,7 +73,6 @@ fun PostCard(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        Spacer(Modifier.height(6.dp))
     }
 
     val bodyPart = @Composable { maxLines: i32 ->
@@ -128,18 +132,20 @@ fun PostCard(
 
                     Spacer(Modifier.width(16.dp))
                     Column(FillMaxWidthModifier) {
-                        if (!isNote)
+                        if (!isNote) {
                             titlePart()
+                            Spacer(Modifier.height(6.dp))
+                        }
                         Row {
                             Icon(
                                 imageVector = Icons.Default.Numbers,
                                 contentDescription = "Post id",
                                 tint = MaterialTheme.colorScheme.outline,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(16.dp)
                             )
                             Text(
                                 text = data.id.toString(),
-                                style = MaterialTheme.typography.labelLarge,
+                                style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.outline
                             )
                         }
@@ -156,7 +162,7 @@ fun PostCard(
             ) {
                 Row {
                     Icon(
-                        imageVector = Icons.Default.PostAdd,
+                        imageVector = Icons.Default.AddCircle,
                         contentDescription = "Create time",
                         tint = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.size(16.dp)
@@ -169,7 +175,7 @@ fun PostCard(
                 }
                 Row {
                     Icon(
-                        imageVector = Icons.Default.EditNote,
+                        imageVector = Icons.Default.DriveFileRenameOutline,
                         contentDescription = "Modify time",
                         tint = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.size(16.dp)

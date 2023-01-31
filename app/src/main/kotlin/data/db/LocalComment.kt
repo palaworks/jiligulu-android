@@ -32,6 +32,15 @@ interface LocalCommentDao {
 
     @Query("DELETE FROM local_comment WHERE comment_id = (:id)")
     suspend fun delete(id: i64)
+
+    @Query("UPDATE local_comment SET comment_id = (:newId) WHERE comment_id = (:oldId)")
+    suspend fun chId(oldId: i64, newId: i64)
+
+    @Query("UPDATE local_comment SET comment_binding_id = (:newId) WHERE comment_binding_id = (:oldId) AND comment_is_reply = (:isReply)")
+    suspend fun chBindingId(oldId: i64, newId: i64, isReply: Boolean)
+
+    @Query("SELECT MIN(comment_id) FROM local_comment")
+    suspend fun getMinId(): i64
 }
 
 @TypeConverters(DateConverter::class)

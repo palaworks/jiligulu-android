@@ -5,6 +5,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -26,10 +27,7 @@ import data.ui.CommentData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import ui.FillMaxWidthModifier
-import ui.foxDog
-import ui.foxDogX3
-import ui.rememberMutStateOf
+import ui.*
 import unilang.alias.*
 import unilang.time.format
 import unilang.time.yyMdHmm
@@ -43,8 +41,8 @@ fun CommentCard(
     navToCommentCreate: () -> Unit,
     data: CommentData,
     existDiff: Boolean,
-    afterApplyLocal: () -> Unit,
-    afterApplyRemote: () -> Unit,
+    afterConflictResolved: (isDeleted: Boolean) -> Unit,
+    showSnackBar: (String) -> Unit
 ) {
     var showDiffDialog by rememberMutStateOf(false)
 
@@ -52,8 +50,9 @@ fun CommentCard(
         CommentDiffDialog(
             data.id,
             { showDiffDialog = false },
-            afterApplyLocal,
-            afterApplyRemote
+            afterConflictResolved,
+            afterConflictResolved,
+            showSnackBar
         )
 
     val ctx = LocalContext.current
@@ -107,41 +106,80 @@ fun CommentCard(
                     }
 
                 Spacer(Modifier.width(16.dp))
-                Text(
-                    text = data.body.replace("\n", ""),
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        lineBreak = LineBreak.Simple
-                    ),
-                    maxLines = 3,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = FillMaxWidthModifier
-                        .padding(bottom = 8.dp)
-                )
+
+                Column {
+                    Row(
+                        FillMaxWidthModifier,
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Numbers,
+                            contentDescription = "Comment id",
+                            tint = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = data.id.toString(),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                    }
+                    Row(
+                        FillMaxWidthModifier,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row {
+                            Icon(
+                                imageVector = Icons.Default.ArrowForward,
+                                contentDescription = "Is reply",
+                                tint = MaterialTheme.colorScheme.outline,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = if (data.isReply) "Comment" else "Post",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        }
+                        Row {
+                            Icon(
+                                imageVector = Icons.Default.Numbers,
+                                contentDescription = "Binding id",
+                                tint = MaterialTheme.colorScheme.outline,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = data.bindingId.toString(),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = data.body.replace("\n", ""),
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            lineBreak = LineBreak.Simple
+                        ),
+                        maxLines = 3,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = FillMaxWidthModifier
+                            .padding(bottom = 8.dp)
+                    )
+                }
             }
 
             Spacer(Modifier.height(10.dp))
 
             Row(
-                modifier = FillMaxWidthModifier, horizontalArrangement = Arrangement.SpaceBetween
+                modifier = FillMaxWidthModifier,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row {
                     Icon(
-                        imageVector = Icons.Default.Numbers,
-                        contentDescription = "Comment id",
-                        tint = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Text(
-                        text = data.id.toString(),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                }
-                Row {
-                    Icon(
                         imageVector = Icons.Outlined.AddCircle,
-                        contentDescription = "Create Time",
+                        contentDescription = "Create time",
                         tint = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.size(16.dp)
                     )
@@ -150,6 +188,19 @@ fun CommentCard(
                         text = data.createTime.format(yyMdHmm),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.outline,
+                    )
+                }
+                Row {
+                    Icon(
+                        imageVector = Icons.Default.DriveFileRenameOutline,
+                        contentDescription = "Modify time",
+                        tint = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        text = data.modifyTime.format(yyMdHmm),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.outline
                     )
                 }
             }
@@ -165,9 +216,9 @@ fun CommentCardPreview() {
         CommentCard(
             {}, {},
             CommentData(
-                12384,
+                testId,
                 foxDog,
-                114514,
+                testId,
                 false,
                 Date(),
                 Date()
@@ -178,9 +229,9 @@ fun CommentCardPreview() {
         CommentCard(
             {}, {},
             CommentData(
-                12384,
+                testId,
                 foxDogX3,
-                114514,
+                testId,
                 true,
                 Date(),
                 Date()

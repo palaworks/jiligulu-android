@@ -75,9 +75,11 @@ fun CommentEditor(
         mode as CommentEditMode.Create
         val bindingId = mode.bindingId
         val isReply = mode.isReply
+        val minId = dao.getMinId()
+        val id = if (minId > 0) -1 else minId - 1
         val data =
             CommentData(
-                -1,
+                id,
                 bodyText,
                 bindingId,
                 isReply,

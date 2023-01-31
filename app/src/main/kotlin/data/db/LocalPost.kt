@@ -32,6 +32,12 @@ interface LocalPostDao {
 
     @Query("DELETE FROM local_post WHERE post_id = (:id)")
     suspend fun delete(id: i64)
+
+    @Query("UPDATE local_post SET post_id = (:newId) WHERE post_id = (:oldId)")
+    suspend fun chId(oldId: i64, newId: i64)
+
+    @Query("SELECT MIN(post_id) FROM local_post")
+    suspend fun getMinId(): i64
 }
 
 @TypeConverters(DateConverter::class)

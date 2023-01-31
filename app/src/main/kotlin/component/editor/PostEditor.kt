@@ -75,9 +75,11 @@ fun PostEditor(
 
     suspend fun create() = withContext(Dispatchers.IO) {
         val dao = LocalPostDbSingleton(ctx).localPostDao()
+        val minId = dao.getMinId()
+        val id = if (minId > 0) -1 else minId - 1
         val data =
             PostData(
-                -1,
+                id,
                 titleText,
                 bodyText,
                 Date(),
