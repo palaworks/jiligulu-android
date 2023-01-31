@@ -76,9 +76,11 @@ internal constructor(
 object TokenServiceSingleton {
     private var service = none<CachedTokenService>()
 
-    private fun reset() {
-        if (service.isPresent)
+    fun reset() {
+        if (service.isPresent) {
             service = none()
+            ChannelSingleton.reset()
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)

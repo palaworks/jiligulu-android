@@ -23,6 +23,7 @@ import kotlinx.coroutines.withContext
 import ui.FillMaxSizeModifier
 import ui.rememberMutStateOf
 import ui.state.CommentListScreenViewModel
+import ui.state.CommentListScreenViewModelSingleton
 import unilang.alias.i64
 import unilang.type.copyUnless
 import java.util.*
@@ -33,12 +34,12 @@ import kotlin.coroutines.coroutineContext
 @Composable
 fun CommentListScreen(
     contentPadding: PaddingValues,
-    viewModel: CommentListScreenViewModel,
     navToCommentEdit: (i64) -> Unit,
     navToCommentCreate: (i64) -> Unit,
     showSnackBar: (String) -> Unit
 ) {
     val ctx = LocalContext.current
+    val viewModel = CommentListScreenViewModelSingleton()
     val uiState by viewModel.state.collectAsState()
 
     suspend fun load() {

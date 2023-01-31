@@ -22,6 +22,7 @@ import kotlinx.coroutines.withContext
 import ui.FillMaxSizeModifier
 import ui.rememberMutStateOf
 import ui.state.PostListScreenViewModel
+import ui.state.PostListScreenViewModelSingleton
 import unilang.alias.i64
 import unilang.type.copyUnless
 import java.util.*
@@ -31,12 +32,12 @@ import java.util.*
 @Composable
 fun PostListScreen(
     contentPadding: PaddingValues,
-    viewModel: PostListScreenViewModel,
     navToPostEdit: (i64) -> Unit,
     navToCommentCreate: (i64) -> Unit,
     showSnackBar: (String) -> Unit
 ) {
     val ctx = LocalContext.current
+    val viewModel = PostListScreenViewModelSingleton()
     val uiState by viewModel.state.collectAsState()
 
     suspend fun load() {

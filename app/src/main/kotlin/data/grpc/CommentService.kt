@@ -252,9 +252,11 @@ internal constructor(
 object CommentServiceSingleton {
     private var service: Optional<CommentService> = none()
 
-    private fun reset() {
-        if (service.isPresent)
+    fun reset() {
+        if (service.isPresent){
             service = none()
+            ChannelSingleton.reset()
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)

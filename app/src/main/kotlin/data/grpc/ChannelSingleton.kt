@@ -15,6 +15,11 @@ import java.util.*
 object ChannelSingleton {
     private var channel = none<ManagedChannel>()
 
+    fun reset() {
+        if (channel.isPresent)
+            channel = none()
+    }
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     suspend operator fun invoke(ctx: Context) =
         withContext(Dispatchers.IO) {

@@ -68,3 +68,9 @@ class PostListScreenViewModel : ViewModel() {
         )
     }
 }
+
+object PostListScreenViewModelSingleton {
+    private var viewModel = PostListScreenViewModel()
+    fun reset() = viewModel.reset(listOf(), listOf())
+    operator fun invoke() = viewModel
+}

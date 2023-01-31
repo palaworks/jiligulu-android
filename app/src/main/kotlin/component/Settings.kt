@@ -17,11 +17,17 @@ import androidx.compose.ui.unit.dp
 import data.db.AppSetting
 import data.db.AppSettingDatabase
 import data.db.AppSettingDbSingleton
+import data.grpc.ChannelSingleton
+import data.grpc.CommentServiceSingleton
+import data.grpc.PostServiceSingleton
+import data.grpc.TokenServiceSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
+import ui.state.CommentListScreenViewModelSingleton
+import ui.state.PostListScreenViewModelSingleton
 import unilang.type.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -35,22 +41,22 @@ fun Settings(
 
     val coroutineScope = rememberCoroutineScope()
 
-    coroutineScope.launch {
-        withContext(Dispatchers.IO) {
-            val dao = AppSettingDbSingleton(ctx).appSettingDao()
-            setting = dao.get().some()
-        }
+    coroutineScope.launch(Dispatchers.IO) {
+        val dao = AppSettingDbSingleton(ctx).appSettingDao()
+        setting = dao.get().some()
     }
 
-    fun save(data: AppSetting) {
-        coroutineScope.launch {
-            withContext(Dispatchers.IO) {
-                val dao = AppSettingDbSingleton(ctx).appSettingDao()
-                dao.update(data)
-                setting = dao.get().some()
-            }
+    fun save(data: AppSetting) =
+        coroutineScope.launch(Dispatchers.IO) {
+            val dao = AppSettingDbSingleton(ctx).appSettingDao()
+            dao.update(data)
+            setting = dao.get().some()
+            TokenServiceSingleton.reset()
+            PostServiceSingleton.reset()
+            PostListScreenViewModelSingleton.reset()
+            CommentServiceSingleton.reset()
+            CommentListScreenViewModelSingleton.reset()
         }
-    }
 
     if (setting.isPresent)
         Column(
@@ -65,9 +71,10 @@ fun Settings(
             )
             Spacer(Modifier.height(20.dp))
             SettingItem(
-                onSave = {
+                onSave = { new ->
                     setting.map { old ->
-                        save(old.copy(grpcHost = it))
+                        if (old.grpcHost != new)
+                            save(old.copy(grpcHost = new))
                     }
                 },
                 "Host",
@@ -77,9 +84,10 @@ fun Settings(
             )
             Spacer(Modifier.height(20.dp))
             SettingItem(
-                onSave = {
+                onSave = { new ->
                     setting.map { old ->
-                        save(old.copy(grpcPort = it.toInt()))
+                        if (old.grpcPort != new.toInt())
+                            save(old.copy(grpcPort = new.toInt()))
                     }
                 },
                 "Port",
@@ -98,9 +106,10 @@ fun Settings(
             )
             Spacer(Modifier.height(20.dp))
             SettingItem(
-                onSave = {
+                onSave = { new ->
                     setting.map { old ->
-                        save(old.copy(pilipalaUid = it.toLong()))
+                        if (old.pilipalaUid != new.toLong())
+                            save(old.copy(pilipalaUid = new.toLong()))
                     }
                 },
                 "User id",
@@ -110,9 +119,10 @@ fun Settings(
             )
             Spacer(Modifier.height(20.dp))
             SettingItem(
-                onSave = {
+                onSave = { new ->
                     setting.map { old ->
-                        save(old.copy(pilipalaPwd = it))
+                        if (old.pilipalaPwd != new)
+                            save(old.copy(pilipalaPwd = new))
                     }
                 },
                 "Password",

@@ -26,7 +26,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ui.rememberMutStateOf
 import ui.state.CommentListScreenViewModel
+import ui.state.CommentListScreenViewModelSingleton
 import ui.state.PostListScreenViewModel
+import ui.state.PostListScreenViewModelSingleton
 import unilang.alias.*
 import java.util.*
 
@@ -54,9 +56,6 @@ fun AppScreen() {
     val getIdNavArg = { entry: NavBackStackEntry ->
         entry.arguments!!.getLong("id")
     }
-
-    val commentListScreenViewModel = CommentListScreenViewModel()
-    val postListScreenViewModel = PostListScreenViewModel()
 
     fun navTo(dest: String) {
         navController.navigate(dest) {
@@ -97,9 +96,7 @@ fun AppScreen() {
             BottomNavBar(
                 navController,
                 bottomNavBarItems,
-                ::navTo,
-                postListScreenViewModel,
-                commentListScreenViewModel
+                ::navTo
             )
         }
     ) { contentPadding ->
@@ -113,7 +110,6 @@ fun AppScreen() {
 
                 PostListScreen(
                     contentPadding = contentPadding,
-                    postListScreenViewModel,
                     navToPostEdit = { id: i64 ->
                         navTo("${AppRoute.MODIFY_POST}/$id")
                     },
@@ -131,7 +127,7 @@ fun AppScreen() {
                     mode = PostEditMode.Create,
                     afterCreated = {
                         navTo(AppRoute.POST_LIST)
-                        postListScreenViewModel.addConflict(it)
+                        PostListScreenViewModelSingleton().addConflict(it)
                     },
                     afterUpdated = {},
                 )
@@ -149,7 +145,7 @@ fun AppScreen() {
                     afterCreated = {},
                     afterUpdated = {
                         navTo(AppRoute.POST_LIST)
-                        postListScreenViewModel.update(it)
+                        PostListScreenViewModelSingleton().update(it)
                     },
                 )
             }
@@ -159,7 +155,6 @@ fun AppScreen() {
 
                 CommentListScreen(
                     contentPadding = contentPadding,
-                    viewModel = commentListScreenViewModel,
                     navToCommentEdit = { id: i64 ->
                         navTo("${AppRoute.MODIFY_COMMENT}/$id")
                     },
@@ -185,7 +180,7 @@ fun AppScreen() {
                     mode = CommentEditMode.Create(bindingId, isReply),
                     afterCreated = {
                         navTo(AppRoute.COMMENT_LIST)
-                        commentListScreenViewModel.addConflict(it)
+                        CommentListScreenViewModelSingleton().addConflict(it)
                     },
                     afterUpdated = {},
                 )
@@ -203,7 +198,7 @@ fun AppScreen() {
                     afterCreated = {},
                     afterUpdated = {
                         navTo(AppRoute.COMMENT_LIST)
-                        commentListScreenViewModel.update(it)
+                        CommentListScreenViewModelSingleton().update(it)
                     },
                 )
             }

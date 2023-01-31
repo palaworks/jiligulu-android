@@ -21,6 +21,7 @@ import global.AppRoute
 import ui.FillMaxWidthModifier
 import ui.state.CommentListScreenViewModel
 import ui.state.PostListScreenViewModel
+import ui.state.PostListScreenViewModelSingleton
 import unilang.alias.i32
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,11 +30,9 @@ fun BottomNavBar(
     navController: NavController,
     dataList: List<BottomNavBarItemData>,
     navTo: (String) -> Unit,
-    postScreenViewModel: PostListScreenViewModel,
-    commentScreenViewModel: CommentListScreenViewModel
 ) {
-    val postScreenUiState by postScreenViewModel.state.collectAsState()
-    val commentScreenUiState by commentScreenViewModel.state.collectAsState()
+    val postScreenUiState by PostListScreenViewModelSingleton().state.collectAsState()
+    val commentScreenUiState by CommentListScreenViewModel().state.collectAsState()
 
     val st by navController.currentBackStackEntryAsState()
 

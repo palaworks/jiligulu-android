@@ -68,3 +68,9 @@ class CommentListScreenViewModel : ViewModel() {
         )
     }
 }
+
+object CommentListScreenViewModelSingleton {
+    private var viewModel = CommentListScreenViewModel()
+    fun reset() = viewModel.reset(listOf(), listOf())
+    operator fun invoke() = viewModel
+}
