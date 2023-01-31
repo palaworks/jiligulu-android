@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import component.editor.PostEditor
+import data.ui.PostData
 import data.ui.PostEditMode
 import unilang.alias.i64
 import java.util.*
@@ -18,7 +19,8 @@ import java.util.*
 fun PostEditScreen(
     contentPadding: PaddingValues,
     mode: PostEditMode,
-    navBack: () -> Unit
+    afterCreated: (PostData) -> Unit,
+    afterUpdated: (PostData) -> Unit,
 ) {
     Column(Modifier.padding(contentPadding)) {
         Column(
@@ -30,7 +32,8 @@ fun PostEditScreen(
 
             PostEditor(
                 mode,
-                navBack
+                afterCreated,
+                afterUpdated
             )
         }
     }

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -22,13 +21,13 @@ import data.ui.CommentEditMode
 import data.ui.PostEditMode
 import global.AppRoute
 import global.bottomNavBarItems
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ui.rememberMutStateOf
-import ui.state.CommentScreenViewModel
-import ui.state.PostScreenViewModel
+import ui.state.CommentListScreenViewModel
+import ui.state.PostListScreenViewModel
 import unilang.alias.*
-import unilang.type.none
-import unilang.type.some
 import java.util.*
 
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -56,8 +55,8 @@ fun AppScreen() {
         entry.arguments!!.getLong("id")
     }
 
-    val commentScreenViewModel = CommentScreenViewModel()
-    val postScreenViewModel = PostScreenViewModel()
+    val commentListScreenViewModel = CommentListScreenViewModel()
+    val postListScreenViewModel = PostListScreenViewModel()
 
     fun navTo(dest: String) {
         navController.navigate(dest) {
@@ -74,7 +73,10 @@ fun AppScreen() {
 
     fun showSnackBar(message: String) =
         coroutineScope.launch {
-            snackBarHostState.showSnackbar(message = message, actionLabel = "OK")
+            snackBarHostState.showSnackbar(
+                message = message,
+                actionLabel = "OK"
+            )
         }
 
     Scaffold(
@@ -96,8 +98,8 @@ fun AppScreen() {
                 navController,
                 bottomNavBarItems,
                 ::navTo,
-                postScreenViewModel,
-                commentScreenViewModel
+                postListScreenViewModel,
+                commentListScreenViewModel
             )
         }
     ) { contentPadding ->
@@ -111,7 +113,7 @@ fun AppScreen() {
 
                 PostListScreen(
                     contentPadding = contentPadding,
-                    postScreenViewModel,
+                    postListScreenViewModel,
                     navToPostEdit = { id: i64 ->
                         navTo("${AppRoute.MODIFY_POST}/$id")
                     },
@@ -127,7 +129,11 @@ fun AppScreen() {
                 PostEditScreen(
                     contentPadding = contentPadding,
                     mode = PostEditMode.Create,
-                    navBack = { navTo(AppRoute.POST_LIST) }
+                    afterCreated = {
+                        navTo(AppRoute.POST_LIST)
+                        postListScreenViewModel.addConflict(it)
+                    },
+                    afterUpdated = {},
                 )
             }
             composable(
@@ -140,7 +146,11 @@ fun AppScreen() {
                 PostEditScreen(
                     contentPadding = contentPadding,
                     mode = PostEditMode.Edit(id),
-                    navBack = { navTo(AppRoute.POST_LIST) }
+                    afterCreated = {},
+                    afterUpdated = {
+                        navTo(AppRoute.POST_LIST)
+                        postListScreenViewModel.update(it)
+                    },
                 )
             }
 
@@ -149,7 +159,7 @@ fun AppScreen() {
 
                 CommentListScreen(
                     contentPadding = contentPadding,
-                    viewModel = commentScreenViewModel,
+                    viewModel = commentListScreenViewModel,
                     navToCommentEdit = { id: i64 ->
                         navTo("${AppRoute.MODIFY_COMMENT}/$id")
                     },
@@ -173,7 +183,11 @@ fun AppScreen() {
                 CommentEditScreen(
                     contentPadding = contentPadding,
                     mode = CommentEditMode.Create(bindingId, isReply),
-                    navBack = { navTo(AppRoute.COMMENT_LIST) }
+                    afterCreated = {
+                        navTo(AppRoute.COMMENT_LIST)
+                        commentListScreenViewModel.addConflict(it)
+                    },
+                    afterUpdated = {},
                 )
             }
             composable(
@@ -186,7 +200,11 @@ fun AppScreen() {
                 CommentEditScreen(
                     contentPadding = contentPadding,
                     mode = CommentEditMode.Edit(id),
-                    navBack = { navTo(AppRoute.COMMENT_LIST) }
+                    afterCreated = {},
+                    afterUpdated = {
+                        navTo(AppRoute.COMMENT_LIST)
+                        commentListScreenViewModel.update(it)
+                    },
                 )
             }
 

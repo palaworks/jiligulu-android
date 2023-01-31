@@ -37,7 +37,8 @@ import java.util.*
 @Composable
 fun CommentEditor(
     mode: CommentEditMode,
-    navBack: () -> Unit
+    afterCreated: (CommentData) -> Unit,
+    afterUpdated: (CommentData) -> Unit
 ) {
     val ctx = LocalContext.current
     var initialized by rememberMutStateOf(false)
@@ -68,6 +69,9 @@ fun CommentEditor(
                 modifyTime = Date()
             )
         dao.update(data)
+        withContext(Dispatchers.Main) {
+            afterUpdated(data)
+        }
     }
 
     suspend fun create() = withContext(Dispatchers.IO) {
@@ -87,6 +91,9 @@ fun CommentEditor(
                 Date()
             )
         dao.insert(data)
+        withContext(Dispatchers.Main) {
+            afterCreated(data)
+        }
     }
 
     Column {
@@ -120,7 +127,6 @@ fun CommentEditor(
                                 is CommentEditMode.Edit -> update()
                                 is CommentEditMode.Create -> create()
                             }
-                            navBack()
                         }
                     }
                 ) {

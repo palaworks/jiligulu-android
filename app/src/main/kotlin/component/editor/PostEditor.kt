@@ -37,7 +37,8 @@ import java.util.*
 @Composable
 fun PostEditor(
     mode: PostEditMode,
-    navBack: () -> Unit
+    afterCreated: (PostData) -> Unit,
+    afterUpdated: (PostData) -> Unit
 ) {
     val ctx = LocalContext.current
     var initialized by rememberMutStateOf(false)
@@ -71,6 +72,9 @@ fun PostEditor(
                 modifyTime = Date()
             )
         dao.update(data)
+        withContext(Dispatchers.Main) {
+            afterUpdated(data)
+        }
     }
 
     suspend fun create() = withContext(Dispatchers.IO) {
@@ -86,6 +90,9 @@ fun PostEditor(
                 Date()
             )
         dao.insert(data)
+        withContext(Dispatchers.Main) {
+            afterCreated(data)
+        }
     }
 
     Column {
@@ -119,7 +126,6 @@ fun PostEditor(
                                 is PostEditMode.Edit -> update()
                                 is PostEditMode.Create -> create()
                             }
-                            navBack()
                         }
                     }
                 ) {

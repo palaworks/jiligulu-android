@@ -19,7 +19,7 @@ import data.ui.sha256
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ui.FillMaxSizeModifier
-import ui.state.PostScreenViewModel
+import ui.state.PostListScreenViewModel
 import unilang.alias.i64
 import unilang.type.copyUnless
 import java.util.*
@@ -29,7 +29,7 @@ import java.util.*
 @Composable
 fun PostListScreen(
     contentPadding: PaddingValues,
-    viewModel: PostScreenViewModel,
+    viewModel: PostListScreenViewModel,
     navToPostEdit: (i64) -> Unit,
     navToCommentCreate: (i64) -> Unit,
     showSnackBar: (String) -> Unit
@@ -46,7 +46,7 @@ fun PostListScreen(
         val remoteIdSha256Map = service.getAllSha256()
         if (remoteIdSha256Map.isEmpty) {
             showSnackBar("Network error: failed to load remote data.")
-            viewModel.reset(local.sortedBy { it.createTime }.reversed(), listOf())
+            viewModel.reset(local, listOf())
             return@withContext
         }
 
@@ -71,12 +71,12 @@ fun PostListScreen(
 
         if (remoteOnly.isEmpty) {
             showSnackBar("Network error: failed to load remote data.")
-            viewModel.reset(local.sortedBy { it.createTime }.reversed(), listOf())
+            viewModel.reset(local, listOf())
             return@withContext
         }
 
         viewModel.reset(
-            (local + remoteOnly.get()).sortedBy { it.createTime }.reversed(),//full
+            local + remoteOnly.get(),//full
             localOnly + remoteOnly.get() + dataDiff//conflict
         )
     }
@@ -104,10 +104,7 @@ fun PostListScreen(
                     uiState.conflict.any { it.id == id },
                     { isDeleted ->
                         if (isDeleted)
-                            viewModel.reset(
-                                uiState.full.copyUnless { it.id == id },
-                                uiState.conflict.copyUnless { it.id == id }
-                            )
+                            viewModel.remove(id)
                         else
                             viewModel.resetConflict(uiState.conflict.copyUnless { it.id == id })
                     },
