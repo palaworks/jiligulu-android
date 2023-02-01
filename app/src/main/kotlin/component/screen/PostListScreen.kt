@@ -91,7 +91,7 @@ fun PostListScreen(
             .padding(horizontal = 10.dp)
     ) {
         CardList(
-            !uiState.initialized,
+            uiState.needReload,
             uiState.list,
             doRefresh = ::load,
             render = { (data, hasConflict) ->

@@ -24,13 +24,15 @@ import component.NoRipple
 import data.db.LocalPostDbSingleton
 import data.ui.PostData
 import data.ui.PostEditMode
+import data.ui.sha256
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
-import unilang.type.optional
+import unilang.type.none
 import unilang.type.orElse
+import unilang.type.some
 import java.util.*
 
 @OptIn(ExperimentalTextApi::class)
@@ -40,7 +42,7 @@ import java.util.*
 fun PostEditor(
     mode: PostEditMode,
     afterCreated: (PostData) -> Unit,
-    afterUpdated: (PostData) -> Unit
+    afterUpdated: (Optional<PostData>) -> Unit
 ) {
     val ctx = LocalContext.current
     var initialized by rememberMutStateOf(false)
@@ -53,7 +55,8 @@ fun PostEditor(
 
     suspend fun initialize() {
         val dao = LocalPostDbSingleton(ctx).localPostDao()
-        val id = (mode as PostEditMode.Edit).id
+        mode as PostEditMode.Edit
+        val id = mode.id
         val data = dao.getOne(id)
         titleText = data.title
         bodyText = data.body
@@ -65,21 +68,27 @@ fun PostEditor(
 
     suspend fun update() {
         val dao = LocalPostDbSingleton(ctx).localPostDao()
-        val id = (mode as PostEditMode.Edit).id
-        val data = dao
-            .getOne(id)
-            .copy(
-                title = titleText,
-                body = bodyText,
-                modifyTime = Date()
-            )
-        dao.update(data)
-        afterUpdated(data)
+        mode as PostEditMode.Edit
+        val id = mode.id
+
+        val old = dao.getOne(id)
+        val new = old.copy(
+            title = titleText,
+            body = bodyText,
+            modifyTime = Date()
+        )
+
+        if (old.sha256() != new.sha256())
+            afterUpdated(none())
+        else {
+            dao.update(new)
+            afterUpdated(new.some())
+        }
     }
 
     suspend fun create() {
         val dao = LocalPostDbSingleton(ctx).localPostDao()
-        val minId = dao.getMinId().orElse { -1 }
+        val minId = dao.getMinId().orElse { 1 }
         val id = if (minId > 0) -1 else minId - 1
         val data =
             PostData(
@@ -90,9 +99,7 @@ fun PostEditor(
                 Date()
             )
         dao.insert(data)
-        withContext(Dispatchers.Main) {
-            afterCreated(data)
-        }
+        afterCreated(data)
     }
 
     Column {

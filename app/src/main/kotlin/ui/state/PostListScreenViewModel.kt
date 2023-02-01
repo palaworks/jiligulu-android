@@ -12,7 +12,7 @@ typealias PostDataWithConflictMark = Pair<PostData, Boolean>
 
 data class PostListScreenState(
     val list: List<PostDataWithConflictMark>,
-    val initialized: Boolean
+    val needReload: Boolean
 )
 
 private fun sort(list: List<PostDataWithConflictMark>) =
@@ -22,7 +22,7 @@ class PostListScreenViewModel : ViewModel() {
     private val mutState = MutableStateFlow(
         PostListScreenState(
             listOf(),
-            false
+            true
         )
     )
 
@@ -31,7 +31,7 @@ class PostListScreenViewModel : ViewModel() {
     fun reset(list: List<PostDataWithConflictMark>) {
         mutState.value = PostListScreenState(
             sort(list),
-            true
+            false
         )
     }
 
@@ -51,6 +51,10 @@ class PostListScreenViewModel : ViewModel() {
             .copyUnless { it.first.id == data.first.id }
         new.add(data)
         reset(new)
+    }
+
+    fun setNeedReload() {
+        mutState.value = mutState.value.copy(needReload = true)
     }
 }
 

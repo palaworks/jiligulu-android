@@ -21,13 +21,9 @@ import data.ui.CommentEditMode
 import data.ui.PostEditMode
 import global.AppRoute
 import global.bottomNavBarItems
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import ui.rememberMutStateOf
-import ui.state.CommentListScreenViewModel
 import ui.state.CommentListScreenViewModelSingleton
-import ui.state.PostListScreenViewModel
 import ui.state.PostListScreenViewModelSingleton
 import unilang.alias.*
 import java.util.*
@@ -59,11 +55,8 @@ fun AppScreen() {
 
     fun navTo(dest: String) {
         navController.navigate(dest) {
-            popUpTo(navController.graph.findStartDestination().id) {
-                saveState = true
-            }
+            popUpTo(navController.graph.findStartDestination().id)
             launchSingleTop = true
-            restoreState = true
         }
     }
 
@@ -102,8 +95,8 @@ fun AppScreen() {
     ) { contentPadding ->
         NavHost(
             navController = navController,
-            //startDestination = AppRoute.POST_LIST,
-            startDestination = AppRoute.SETTINGS
+            startDestination = AppRoute.POST_LIST,
+            //startDestination = AppRoute.SETTINGS
         ) {
             composable(AppRoute.POST_LIST) {
                 title = "Posts"
@@ -144,8 +137,9 @@ fun AppScreen() {
                     mode = PostEditMode.Edit(id),
                     afterCreated = {},
                     afterUpdated = {
+                        if (it.isPresent)
+                            PostListScreenViewModelSingleton().setNeedReload()
                         navTo(AppRoute.POST_LIST)
-                        //TODO detect conflict here
                     },
                 )
             }
@@ -197,9 +191,10 @@ fun AppScreen() {
                     mode = CommentEditMode.Edit(id),
                     afterCreated = {},
                     afterUpdated = {
+                        if (it.isPresent)
+                            CommentListScreenViewModelSingleton().setNeedReload()
                         navTo(AppRoute.COMMENT_LIST)
-                        //TODO detect conflict here
-                    },
+                    }
                 )
             }
 

@@ -24,12 +24,15 @@ import component.NoRipple
 import data.db.LocalCommentDbSingleton
 import data.ui.CommentData
 import data.ui.CommentEditMode
+import data.ui.sha256
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
+import unilang.type.none
 import unilang.type.orElse
+import unilang.type.some
 import java.util.*
 
 @OptIn(ExperimentalTextApi::class)
@@ -39,7 +42,7 @@ import java.util.*
 fun CommentEditor(
     mode: CommentEditMode,
     afterCreated: (CommentData) -> Unit,
-    afterUpdated: (CommentData) -> Unit
+    afterUpdated: (Optional<CommentData>) -> Unit,
 ) {
     val ctx = LocalContext.current
     var initialized by rememberMutStateOf(false)
@@ -51,7 +54,8 @@ fun CommentEditor(
 
     suspend fun initialize() {
         val dao = LocalCommentDbSingleton(ctx).localCommentDao()
-        val id = (mode as CommentEditMode.Edit).id
+        mode as CommentEditMode.Edit
+        val id = mode.id
         val data = dao.getOne(id)
         bodyText = data.body
         initialized = true
@@ -62,15 +66,21 @@ fun CommentEditor(
 
     suspend fun update() {
         val dao = LocalCommentDbSingleton(ctx).localCommentDao()
-        val id = (mode as CommentEditMode.Edit).id
-        val data = dao
-            .getOne(id)
-            .copy(
-                body = bodyText,
-                modifyTime = Date()
-            )
-        dao.update(data)
-        afterUpdated(data)
+        mode as CommentEditMode.Edit
+        val id = mode.id
+
+        val old = dao.getOne(id)
+        val new = old.copy(
+            body = bodyText,
+            modifyTime = Date()
+        )
+
+        if (old.sha256() == new.sha256())
+            afterUpdated(none())
+        else {
+            dao.update(new)
+            afterUpdated(new.some())
+        }
     }
 
     suspend fun create() {
@@ -78,7 +88,7 @@ fun CommentEditor(
         mode as CommentEditMode.Create
         val bindingId = mode.bindingId
         val isReply = mode.isReply
-        val minId = dao.getMinId().orElse { -1 }
+        val minId = dao.getMinId().orElse { 1 }
         val id = if (minId > 0) -1 else minId - 1
         val data =
             CommentData(
@@ -90,9 +100,7 @@ fun CommentEditor(
                 Date()
             )
         dao.insert(data)
-        withContext(Dispatchers.Main) {
-            afterCreated(data)
-        }
+        afterCreated(data)
     }
 
     Column {

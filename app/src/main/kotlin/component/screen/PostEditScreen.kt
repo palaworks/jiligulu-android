@@ -11,7 +11,6 @@ import androidx.compose.ui.unit.dp
 import component.editor.PostEditor
 import data.ui.PostData
 import data.ui.PostEditMode
-import unilang.alias.i64
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -20,7 +19,7 @@ fun PostEditScreen(
     contentPadding: PaddingValues,
     mode: PostEditMode,
     afterCreated: (PostData) -> Unit,
-    afterUpdated: (PostData) -> Unit,
+    afterUpdated: (Optional<PostData>) -> Unit
 ) {
     Column(Modifier.padding(contentPadding)) {
         Column(
@@ -33,7 +32,7 @@ fun PostEditScreen(
             PostEditor(
                 mode,
                 afterCreated,
-                afterUpdated
+                afterUpdated,
             )
         }
     }

@@ -11,7 +11,6 @@ import androidx.compose.ui.unit.dp
 import component.editor.CommentEditor
 import data.ui.CommentData
 import data.ui.CommentEditMode
-import unilang.alias.i64
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -20,7 +19,7 @@ fun CommentEditScreen(
     contentPadding: PaddingValues,
     mode: CommentEditMode,
     afterCreated: (CommentData) -> Unit,
-    afterUpdated: (CommentData) -> Unit,
+    afterUpdated: (Optional<CommentData>) -> Unit,
 ) {
     Column(Modifier.padding(contentPadding)) {
         Column(
@@ -33,7 +32,7 @@ fun CommentEditScreen(
             CommentEditor(
                 mode,
                 afterCreated,
-                afterUpdated
+                afterUpdated,
             )
         }
     }

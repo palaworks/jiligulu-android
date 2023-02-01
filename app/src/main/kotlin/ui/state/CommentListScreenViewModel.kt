@@ -12,7 +12,7 @@ typealias CommentDataWithConflictMark = Pair<CommentData, Boolean>
 
 data class CommentListScreenState(
     val list: List<CommentDataWithConflictMark>,
-    val initialized: Boolean
+    val needReload: Boolean
 )
 
 private fun sort(list: List<Pair<CommentData, Boolean>>) =
@@ -22,7 +22,7 @@ class CommentListScreenViewModel : ViewModel() {
     private val mutState = MutableStateFlow(
         CommentListScreenState(
             listOf(),
-            false
+            true
         )
     )
 
@@ -31,7 +31,7 @@ class CommentListScreenViewModel : ViewModel() {
     fun reset(list: List<CommentDataWithConflictMark>) {
         mutState.value = CommentListScreenState(
             sort(list),
-            true
+            false
         )
     }
 
@@ -51,6 +51,10 @@ class CommentListScreenViewModel : ViewModel() {
             .copyUnless { it.first.id == data.first.id }
         new.add(data)
         reset(new)
+    }
+
+    fun setNeedReload() {
+        mutState.value = mutState.value.copy(needReload = true)
     }
 }
 
