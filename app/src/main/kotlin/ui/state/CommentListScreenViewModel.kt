@@ -8,18 +8,19 @@ import unilang.alias.i64
 import unilang.type.copyAdd
 import unilang.type.copyUnless
 
+typealias CommentDataWithConflictMark = Pair<CommentData, Boolean>
+
 data class CommentListScreenState(
-    val full: List<CommentData>,
-    val conflict: List<CommentData>,
+    val list: List<CommentDataWithConflictMark>,
     val initialized: Boolean
 )
 
-private fun sort(list: List<CommentData>) = list.sortedBy { it.createTime }.reversed()
+private fun sort(list: List<Pair<CommentData, Boolean>>) =
+    list.sortedBy { it.first.createTime }.reversed()
 
 class CommentListScreenViewModel : ViewModel() {
     private val mutState = MutableStateFlow(
         CommentListScreenState(
-            listOf(),
             listOf(),
             false
         )
@@ -27,46 +28,34 @@ class CommentListScreenViewModel : ViewModel() {
 
     val state = mutState.asStateFlow()
 
-    fun reset(full: List<CommentData>, conflict: List<CommentData>) {
+    fun reset(list: List<CommentDataWithConflictMark>) {
         mutState.value = CommentListScreenState(
-            sort(full),
-            sort(conflict),
+            sort(list),
             true
         )
     }
 
-    fun addConflict(data: CommentData) {
-        val full = mutState.value.full.copyAdd(data)
-        val conflict = mutState.value.conflict.copyAdd(data)
-        reset(
-            full,
-            conflict
-        )
-    }
-
-    fun update(data: CommentData) {
-        val full = mutState.value.full.copyUnless { it.id == data.id }
-        full.add(data)
-        val conflict = mutState.value.conflict.copyUnless { it.id == data.id }
-        conflict.add(data)
-        reset(
-            full,
-            conflict
-        )
+    fun add(data: CommentDataWithConflictMark) {
+        val new = mutState.value.list.copyAdd(data)
+        reset(new)
     }
 
     fun remove(id: i64) {
-        val full = mutState.value.full.copyUnless { it.id == id }
-        val conflict = mutState.value.conflict.copyUnless { it.id == id }
-        reset(
-            full,
-            conflict
-        )
+        val new = mutState.value.list
+            .copyUnless { it.first.id == id }
+        reset(new)
+    }
+
+    fun removeThenAdd(data: CommentDataWithConflictMark) {
+        val new = mutState.value.list
+            .copyUnless { it.first.id == data.first.id }
+        new.add(data)
+        reset(new)
     }
 }
 
 object CommentListScreenViewModelSingleton {
     private var viewModel = CommentListScreenViewModel()
-    fun reset() = viewModel.reset(listOf(), listOf())
+    fun reset() = viewModel.reset(listOf())
     operator fun invoke() = viewModel
 }

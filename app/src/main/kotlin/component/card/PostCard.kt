@@ -70,7 +70,7 @@ fun PostCard(
     fun tryDoEdit() = coroutineScope.launch {
         val dao = LocalPostDbSingleton(ctx).localPostDao()
         if (dao.maybe(data.id) != null)
-            withContext(Dispatchers.Main) { navToEditor() }
+            navToEditor()
         else
             showSnackBar("No local data: please resolve conflict first.")
     }

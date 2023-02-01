@@ -20,6 +20,7 @@ import data.ui.BottomNavBarItemData
 import global.AppRoute
 import ui.FillMaxWidthModifier
 import ui.state.CommentListScreenViewModel
+import ui.state.CommentListScreenViewModelSingleton
 import ui.state.PostListScreenViewModel
 import ui.state.PostListScreenViewModelSingleton
 import unilang.alias.i32
@@ -32,7 +33,7 @@ fun BottomNavBar(
     navTo: (String) -> Unit,
 ) {
     val postScreenUiState by PostListScreenViewModelSingleton().state.collectAsState()
-    val commentScreenUiState by CommentListScreenViewModel().state.collectAsState()
+    val commentScreenUiState by CommentListScreenViewModelSingleton().state.collectAsState()
 
     val st by navController.currentBackStackEntryAsState()
 
@@ -49,8 +50,8 @@ fun BottomNavBar(
                 icon = {
                     @Composable
                     fun badge() = when (it.route) {
-                        AppRoute.POST_LIST -> postScreenUiState.conflict.size
-                        AppRoute.COMMENT_LIST -> commentScreenUiState.conflict.size
+                        AppRoute.POST_LIST -> postScreenUiState.list.count { it.second }
+                        AppRoute.COMMENT_LIST -> commentScreenUiState.list.count { it.second }
                         else -> 0
                     }.let { if (it != 0) Badge { Text(it.toString()) } }
 

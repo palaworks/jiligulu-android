@@ -37,7 +37,7 @@ fun TryPullDownInfo() {
                     text =
                     """No data yet
                        |Try pull down to fetch data from remote
-                       |Or draft a new one""".trimMargin("|"),
+                       |or draft a new one.""".trimMargin("|"),
                     color = MaterialTheme.colorScheme.outline,
                     textAlign = TextAlign.Center,
                     modifier = FillMaxWidthModifier

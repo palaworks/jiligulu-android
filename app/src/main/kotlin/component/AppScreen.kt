@@ -127,7 +127,7 @@ fun AppScreen() {
                     mode = PostEditMode.Create,
                     afterCreated = {
                         navTo(AppRoute.POST_LIST)
-                        PostListScreenViewModelSingleton().addConflict(it)
+                        PostListScreenViewModelSingleton().add(Pair(it, true))
                     },
                     afterUpdated = {},
                 )
@@ -145,7 +145,7 @@ fun AppScreen() {
                     afterCreated = {},
                     afterUpdated = {
                         navTo(AppRoute.POST_LIST)
-                        PostListScreenViewModelSingleton().update(it)
+                        //TODO detect conflict here
                     },
                 )
             }
@@ -180,7 +180,7 @@ fun AppScreen() {
                     mode = CommentEditMode.Create(bindingId, isReply),
                     afterCreated = {
                         navTo(AppRoute.COMMENT_LIST)
-                        CommentListScreenViewModelSingleton().addConflict(it)
+                        CommentListScreenViewModelSingleton().add(Pair(it, true))
                     },
                     afterUpdated = {},
                 )
@@ -198,7 +198,7 @@ fun AppScreen() {
                     afterCreated = {},
                     afterUpdated = {
                         navTo(AppRoute.COMMENT_LIST)
-                        CommentListScreenViewModelSingleton().update(it)
+                        //TODO detect conflict here
                     },
                 )
             }

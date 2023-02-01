@@ -29,6 +29,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
+import unilang.type.optional
+import unilang.type.orElse
 import java.util.*
 
 @OptIn(ExperimentalTextApi::class)
@@ -49,7 +51,7 @@ fun PostEditor(
 
     val coroutineScope = rememberCoroutineScope()
 
-    suspend fun initialize() = withContext(Dispatchers.IO) {
+    suspend fun initialize() {
         val dao = LocalPostDbSingleton(ctx).localPostDao()
         val id = (mode as PostEditMode.Edit).id
         val data = dao.getOne(id)
@@ -61,7 +63,7 @@ fun PostEditor(
     if (mode is PostEditMode.Edit && !initialized)
         coroutineScope.launch { initialize() }
 
-    suspend fun update() = withContext(Dispatchers.IO) {
+    suspend fun update() {
         val dao = LocalPostDbSingleton(ctx).localPostDao()
         val id = (mode as PostEditMode.Edit).id
         val data = dao
@@ -72,14 +74,12 @@ fun PostEditor(
                 modifyTime = Date()
             )
         dao.update(data)
-        withContext(Dispatchers.Main) {
-            afterUpdated(data)
-        }
+        afterUpdated(data)
     }
 
-    suspend fun create() = withContext(Dispatchers.IO) {
+    suspend fun create() {
         val dao = LocalPostDbSingleton(ctx).localPostDao()
-        val minId = dao.getMinId()
+        val minId = dao.getMinId().orElse { -1 }
         val id = if (minId > 0) -1 else minId - 1
         val data =
             PostData(
@@ -109,7 +109,7 @@ fun PostEditor(
                     )
                     val idText = when (mode) {
                         is PostEditMode.Edit -> mode.id.toString()
-                        is PostEditMode.Create -> "New"
+                        else -> "New"//Create
                     }
                     Text(
                         text = idText,
@@ -124,7 +124,7 @@ fun PostEditor(
                         coroutineScope.launch {
                             when (mode) {
                                 is PostEditMode.Edit -> update()
-                                is PostEditMode.Create -> create()
+                                else -> create()//Create
                             }
                         }
                     }

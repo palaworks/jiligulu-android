@@ -40,7 +40,7 @@ interface LocalCommentDao {
     suspend fun chBindingId(oldId: i64, newId: i64, isReply: Boolean)
 
     @Query("SELECT MIN(comment_id) FROM local_comment")
-    suspend fun getMinId(): i64
+    suspend fun getMinId(): i64?
 }
 
 @TypeConverters(DateConverter::class)

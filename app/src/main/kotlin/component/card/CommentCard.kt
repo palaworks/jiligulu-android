@@ -66,10 +66,11 @@ fun CommentCard(
     fun tryDoEdit() = coroutineScope.launch {
         val dao = LocalCommentDbSingleton(ctx).localCommentDao()
         if (dao.maybe(data.id) != null)
-            withContext(Dispatchers.Main) { navToEditor() }
+            navToEditor()
         else
             showSnackBar("No local data: please resolve conflict first.")
     }
+
     fun tryDoDelete() = coroutineScope.launch {
         val dao = LocalCommentDbSingleton(ctx).localCommentDao()
         if (dao.maybe(data.id) != null)

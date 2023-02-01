@@ -28,8 +28,8 @@ import java.util.*
 fun PostDiffDialog(
     id: i64,
     onDismissRequest: () -> Unit,
-    afterApplyLocal: (deleteRemote:Boolean) -> Unit,
-    afterApplyRemote: (deleteLocal:Boolean) -> Unit,
+    afterApplyLocal: (deleteRemote: Boolean) -> Unit,
+    afterApplyRemote: (deleteLocal: Boolean) -> Unit,
     showSnackBar: (String) -> Unit
 ) {
     val ctx = LocalContext.current
@@ -40,7 +40,7 @@ fun PostDiffDialog(
 
     val coroutineScope = rememberCoroutineScope()
 
-    suspend fun initialize() = withContext(Dispatchers.IO) {
+    suspend fun initialize() {
         val dao = LocalPostDbSingleton(ctx).localPostDao()
         val service = PostServiceSingleton(ctx).get()
 

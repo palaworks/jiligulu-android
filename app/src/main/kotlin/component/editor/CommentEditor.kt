@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ui.FillMaxWidthModifier
 import ui.rememberMutStateOf
+import unilang.type.orElse
 import java.util.*
 
 @OptIn(ExperimentalTextApi::class)
@@ -48,7 +49,7 @@ fun CommentEditor(
 
     val coroutineScope = rememberCoroutineScope()
 
-    suspend fun initialize() = withContext(Dispatchers.IO) {
+    suspend fun initialize() {
         val dao = LocalCommentDbSingleton(ctx).localCommentDao()
         val id = (mode as CommentEditMode.Edit).id
         val data = dao.getOne(id)
@@ -59,7 +60,7 @@ fun CommentEditor(
     if (mode is CommentEditMode.Edit && !initialized)
         coroutineScope.launch { initialize() }
 
-    suspend fun update() = withContext(Dispatchers.IO) {
+    suspend fun update() {
         val dao = LocalCommentDbSingleton(ctx).localCommentDao()
         val id = (mode as CommentEditMode.Edit).id
         val data = dao
@@ -69,17 +70,15 @@ fun CommentEditor(
                 modifyTime = Date()
             )
         dao.update(data)
-        withContext(Dispatchers.Main) {
-            afterUpdated(data)
-        }
+        afterUpdated(data)
     }
 
-    suspend fun create() = withContext(Dispatchers.IO) {
+    suspend fun create() {
         val dao = LocalCommentDbSingleton(ctx).localCommentDao()
         mode as CommentEditMode.Create
         val bindingId = mode.bindingId
         val isReply = mode.isReply
-        val minId = dao.getMinId()
+        val minId = dao.getMinId().orElse { -1 }
         val id = if (minId > 0) -1 else minId - 1
         val data =
             CommentData(
@@ -110,7 +109,7 @@ fun CommentEditor(
                     )
                     val idText = when (mode) {
                         is CommentEditMode.Edit -> mode.id.toString()
-                        is CommentEditMode.Create -> "New"
+                        else -> "New"//Create
                     }
                     Text(
                         text = idText,
@@ -125,7 +124,7 @@ fun CommentEditor(
                         coroutineScope.launch {
                             when (mode) {
                                 is CommentEditMode.Edit -> update()
-                                is CommentEditMode.Create -> create()
+                                else -> create()//Create
                             }
                         }
                     }

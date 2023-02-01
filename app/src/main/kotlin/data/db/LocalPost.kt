@@ -37,7 +37,7 @@ interface LocalPostDao {
     suspend fun chId(oldId: i64, newId: i64)
 
     @Query("SELECT MIN(post_id) FROM local_post")
-    suspend fun getMinId(): i64
+    suspend fun getMinId(): i64?
 }
 
 @TypeConverters(DateConverter::class)

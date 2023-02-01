@@ -10,24 +10,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import component.CardList
-import component.TryPullDownInfo
 import component.card.CommentCard
 import data.db.LocalCommentDbSingleton
 import data.grpc.CommentServiceSingleton
-import data.ui.CommentData
 import data.ui.sha256
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import ui.FillMaxSizeModifier
-import ui.rememberMutStateOf
-import ui.state.CommentListScreenViewModel
 import ui.state.CommentListScreenViewModelSingleton
 import unilang.alias.i64
-import unilang.type.copyUnless
 import java.util.*
-import kotlin.coroutines.coroutineContext
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -40,7 +31,6 @@ fun CommentListScreen(
 ) {
     val ctx = LocalContext.current
     val viewModel = CommentListScreenViewModelSingleton()
-    val uiState by viewModel.state.collectAsState()
 
     suspend fun load() {
         val dao = LocalCommentDbSingleton(ctx).localCommentDao()
@@ -49,57 +39,52 @@ fun CommentListScreen(
         val service = CommentServiceSingleton(ctx)
         if (service.isEmpty) {
             showSnackBar("Setting missing: please config your app first.")
-            viewModel.reset(local, listOf())
+            viewModel.reset(local.map { Pair(it, false) })
             return
         }
 
         val remoteIdSha256Map = service.get().getAllSha256()
         if (remoteIdSha256Map.isEmpty) {
             showSnackBar("Network error: failed to load remote data.")
-            viewModel.reset(local, listOf())
+            viewModel.reset(local.map { Pair(it, false) })
             return
         }
 
-        val localOnly = mutableListOf<CommentData>()
-        val dataDiff = mutableListOf<CommentData>()
+        val remoteOnlyIdList = remoteIdSha256Map.get().keys.toMutableList()
 
-        local.forEach { data ->
+        //TODO poor naming
+        val localWithConflictMark = local.map { data ->
             val localSha256 = data.sha256()
             val remoteSha256 = remoteIdSha256Map.get()[data.id]
 
             if (remoteSha256 == null)
-                localOnly.add(data)//local only comment
+                Pair(data, true)//local only
             else {
-                remoteIdSha256Map.get().remove(data.id)//remove intersection
-                if (localSha256 != remoteSha256)
-                    dataDiff.add(data)//data diff
+                remoteOnlyIdList.remove(data.id)//remove intersection
+                Pair(data, localSha256 != remoteSha256)
             }
         }
 
-        val remoteOnly =
-            service.get().getSome(remoteIdSha256Map.get().keys.toList())//add remote only
+        val remoteOnly = service.get()
+            .getSome(remoteOnlyIdList)//get remote only
 
         if (remoteOnly.isEmpty) {
             showSnackBar("Network error: failed to load remote data.")
-            viewModel.reset(local, listOf())
+            viewModel.reset(local.map { Pair(it, false) })
             return
         }
 
-        viewModel.reset(
-            local + remoteOnly.get(),//full
-            localOnly + remoteOnly.get() + dataDiff//conflict
-        )
+        viewModel.reset(localWithConflictMark + remoteOnly.get().map { Pair(it, true) })
     }
 
     val coroutineScope = rememberCoroutineScope()
     fun deleteLocal(id: i64) = coroutineScope.launch {
-        withContext(Dispatchers.IO) {
-            val dao = LocalCommentDbSingleton(ctx).localCommentDao()
-            dao.delete(id)
-        }
+        val dao = LocalCommentDbSingleton(ctx).localCommentDao()
+        dao.delete(id)
         load()
     }
 
+    val uiState by viewModel.state.collectAsState()
     Column(
         FillMaxSizeModifier
             .padding(contentPadding)
@@ -107,9 +92,9 @@ fun CommentListScreen(
     ) {
         CardList(
             !uiState.initialized,
-            uiState.full,
+            uiState.list,
             doRefresh = ::load,
-            render = { data ->
+            render = { (data, hasConflict) ->
                 val id = data.id
                 CommentCard(
                     { navToCommentEdit(id) },
@@ -118,7 +103,7 @@ fun CommentListScreen(
                     showSnackBar,
                     doDelete = { deleteLocal(id) },
                     data,
-                    uiState.conflict.any { it.id == id },
+                    hasConflict
                 )
             }
         )

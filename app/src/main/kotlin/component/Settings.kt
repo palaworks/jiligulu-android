@@ -93,7 +93,7 @@ fun Settings(
                 "Port",
                 "E.g., 40040",
                 false,
-                setting.get().grpcPort.map { it.toString() }.or("")
+                setting.get().grpcPort.map { it.toString() }.orElse { "" }
             )
 
             Spacer(Modifier.height(40.dp))
@@ -115,7 +115,7 @@ fun Settings(
                 "User id",
                 "E.g., 1001",
                 false,
-                setting.get().pilipalaUid.map { it.toString() }.or("")
+                setting.get().pilipalaUid.map { it.toString() }.orElse { "" }
             )
             Spacer(Modifier.height(20.dp))
             SettingItem(
