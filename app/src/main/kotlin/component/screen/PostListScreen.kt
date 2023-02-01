@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import component.CardList
 import component.card.PostCard
 import data.db.LocalPostDbSingleton
+import data.grpc.CommentServiceSingleton
 import data.grpc.PostServiceSingleton
 import data.ui.PostData
 import data.ui.sha256
@@ -42,11 +43,16 @@ fun PostListScreen(
 
     suspend fun load() {
         val dao = LocalPostDbSingleton(ctx).localPostDao()
-        val service = PostServiceSingleton(ctx).get()
-
         val local = dao.getAll()
 
-        val remoteIdSha256Map = service.getAllSha256()
+        val service = PostServiceSingleton(ctx)
+        if (service.isEmpty) {
+            showSnackBar("Setting missing: please config your app first.")
+            viewModel.reset(local, listOf())
+            return
+        }
+
+        val remoteIdSha256Map = service.get().getAllSha256()
         if (remoteIdSha256Map.isEmpty) {
             showSnackBar("Network error: failed to load remote data.")
             viewModel.reset(local, listOf())
@@ -70,7 +76,7 @@ fun PostListScreen(
         }
 
         val remoteOnly =
-            service.getSome(remoteIdSha256Map.get().keys.toList())//add remote only
+            service.get().getSome(remoteIdSha256Map.get().keys.toList())//add remote only
 
         if (remoteOnly.isEmpty) {
             showSnackBar("Network error: failed to load remote data.")
@@ -99,6 +105,7 @@ fun PostListScreen(
             .padding(horizontal = 10.dp)
     ) {
         CardList(
+            !uiState.initialized,
             uiState.full,
             doRefresh = ::load,
             render = { data ->

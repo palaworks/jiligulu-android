@@ -26,6 +26,7 @@ import java.util.*
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "CoroutineCreationDuringComposition")
 @Composable
 fun <T> CardList(
+    needInit: Boolean,
     data: List<T>,
     doRefresh: suspend () -> Unit,
     render: @Composable (T) -> Unit,
@@ -42,7 +43,7 @@ fun <T> CardList(
 
     val refreshState = rememberPullRefreshState(refreshing, ::refresh)
 
-    if (data.isEmpty() && !refreshing)
+    if (needInit && !refreshing)
         refresh()
 
     Box(FillMaxSizeModifier.pullRefresh(refreshState)) {

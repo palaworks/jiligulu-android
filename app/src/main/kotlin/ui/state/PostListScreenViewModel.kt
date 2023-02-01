@@ -11,6 +11,7 @@ import unilang.type.copyUnless
 data class PostListScreenState(
     val full: List<PostData>,
     val conflict: List<PostData>,
+    val initialized: Boolean
 )
 
 private fun sort(list: List<PostData>) = list.sortedBy { it.createTime }.reversed()
@@ -20,6 +21,7 @@ class PostListScreenViewModel : ViewModel() {
         PostListScreenState(
             listOf(),
             listOf(),
+            false,
         )
     )
 
@@ -29,22 +31,16 @@ class PostListScreenViewModel : ViewModel() {
         mutState.value = PostListScreenState(
             sort(full),
             sort(conflict),
-        )
-    }
-
-    fun resetConflict(conflict: List<PostData>) {
-        mutState.value = PostListScreenState(
-            sort(mutState.value.full),
-            sort(conflict),
+            true,
         )
     }
 
     fun addConflict(data: PostData) {
         val full = mutState.value.full.copyAdd(data)
         val conflict = mutState.value.conflict.copyAdd(data)
-        mutState.value = PostListScreenState(
-            sort(full),
-            sort(conflict),
+        reset(
+            full,
+            conflict,
         )
     }
 
@@ -53,18 +49,18 @@ class PostListScreenViewModel : ViewModel() {
         full.add(data)
         val conflict = mutState.value.conflict.copyUnless { it.id == data.id }
         conflict.add(data)
-        mutState.value = PostListScreenState(
-            sort(full),
-            sort(conflict),
+        reset(
+            full,
+            conflict,
         )
     }
 
     fun remove(id: i64) {
         val full = mutState.value.full.copyUnless { it.id == id }
         val conflict = mutState.value.conflict.copyUnless { it.id == id }
-        mutState.value = PostListScreenState(
-            sort(full),
-            sort(conflict),
+        reset(
+            full,
+            conflict,
         )
     }
 }

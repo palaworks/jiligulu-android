@@ -44,11 +44,16 @@ fun CommentListScreen(
 
     suspend fun load() {
         val dao = LocalCommentDbSingleton(ctx).localCommentDao()
-        val service = CommentServiceSingleton(ctx).get()
-
         val local = dao.getAll()
 
-        val remoteIdSha256Map = service.getAllSha256()
+        val service = CommentServiceSingleton(ctx)
+        if (service.isEmpty) {
+            showSnackBar("Setting missing: please config your app first.")
+            viewModel.reset(local, listOf())
+            return
+        }
+
+        val remoteIdSha256Map = service.get().getAllSha256()
         if (remoteIdSha256Map.isEmpty) {
             showSnackBar("Network error: failed to load remote data.")
             viewModel.reset(local, listOf())
@@ -72,7 +77,7 @@ fun CommentListScreen(
         }
 
         val remoteOnly =
-            service.getSome(remoteIdSha256Map.get().keys.toList())//add remote only
+            service.get().getSome(remoteIdSha256Map.get().keys.toList())//add remote only
 
         if (remoteOnly.isEmpty) {
             showSnackBar("Network error: failed to load remote data.")
@@ -101,6 +106,7 @@ fun CommentListScreen(
             .padding(horizontal = 10.dp)
     ) {
         CardList(
+            !uiState.initialized,
             uiState.full,
             doRefresh = ::load,
             render = { data ->
