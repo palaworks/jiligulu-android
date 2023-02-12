@@ -1,0 +1,71 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [ "main" ]
+    tags:
+      - "v*.*.*"
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    
+    - name: set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Grant execute permission for protoc.sh
+      run: chmod +x protoc.sh
+    - name: Compile proto files
+      run: ./protoc.sh
+     
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    - name: Build with Gradle
+      run: ./gradlew build
+      
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: apk
+        path: app/build/outputs/apk/debug/app-debug.apk
+
+  release:
+    needs: build
+    
+    if: startsWith(github.event.ref, 'refs/tags/v')
+
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Download APK from build
+        uses: actions/download-artifact@v3
+        with:
+          name: apk
+          path: artifact
+
+      - name: Rename APK
+        run: |
+          cd artifact
+          mv app-debug.apk jiligulu.apk
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+           files: artifact/jiligulu.apk
+

@@ -1,15 +1,36 @@
 #!/usr/bin/env bash
 
-declare protoc_path=$HOME/.gradle/caches/modules-2/files-2.1/com.google.protobuf/protoc/3.21.12/62e794ebd383cad86347240f1c9b419c8d8fce10/protoc-3.21.12-linux-x86_64.exe
-declare grpc_java_plugin_path=$HOME/.gradle/caches/modules-2/files-2.1/io.grpc/protoc-gen-grpc-java/1.51.3/6733a1769899769a54df42ad185108405b695b65/protoc-gen-grpc-java-1.51.3-linux-x86_64.exe
-declare grpc_kotlin_plugin_path=./grpc_kotlin_plugin.sh
+mkdir -p bin
 
-declare in_root=./app/src/grpc_proto
-declare java_out_root=./app/src/main/java
-declare kotlin_out_root=./app/src/main/kotlin
+rm -f bin/.gitignore
+touch bin/.gitignore
+printf "*\n!.gitignore" > bin/.gitignore
+
+wget -nc -O bin/protoc "https://search.maven.org/remotecontent?filepath=com/google/protobuf/protoc/3.21.12/protoc-3.21.12-linux-x86_64.exe"
+wget -nc -O bin/grpc_java_plugin "https://search.maven.org/remotecontent?filepath=io/grpc/protoc-gen-grpc-java/1.53.0/protoc-gen-grpc-java-1.53.0-linux-x86_64.exe"
+wget -nc -O bin/protoc_gen_grpc_kotlin.jar "https://search.maven.org/remotecontent?filepath=io/grpc/protoc-gen-grpc-kotlin/1.3.0/protoc-gen-grpc-kotlin-1.3.0-jdk8.jar"
+
+chmod +x bin/protoc
+chmod +x bin/grpc_java_plugin
+
+declare protoc_path=bin/protoc
+declare grpc_java_plugin_path=bin/grpc_java_plugin
+declare grpc_kotlin_plugin_path=grpc_kotlin_plugin.sh
+
+declare in_root=app/src/grpc_proto
+declare java_out_root=app/src/main/java
+declare kotlin_out_root=app/src/main/kotlin
 
 rm -rf $java_out_root/grpc_code_gen
 rm -rf $kotlin_out_root/grpc_code_gen
+
+mkdir $java_out_root/grpc_code_gen
+mkdir $kotlin_out_root/grpc_code_gen
+
+touch $java_out_root/grpc_code_gen/.gitignore
+printf "*\n!.gitignore" > $java_out_root/grpc_code_gen/.gitignore
+touch $kotlin_out_root/grpc_code_gen/.gitignore
+printf "*\n!.gitignore" > $kotlin_out_root/grpc_code_gen/.gitignore
 
 $protoc_path \
 --plugin=protoc-gen-grpc-java=$grpc_java_plugin_path \
@@ -41,7 +62,3 @@ $protoc_path \
 --grpc-kotlin_out=$kotlin_out_root \
 $in_root/token/*.proto
 
-touch $java_out_root/grpc_code_gen/.gitignore
-printf "*\n!.gitignore" > $java_out_root/grpc_code_gen/.gitignore
-touch $kotlin_out_root/grpc_code_gen/.gitignore
-printf "*\n!.gitignore" > $kotlin_out_root/grpc_code_gen/.gitignore

@@ -71,7 +71,7 @@ dependencies {
     implementation("androidx.compose.material:material:1.3.1")
 
     val grpcKotlinVersion = "1.3.0"
-    val grpcVersion = "1.52.1"
+    val grpcVersion = "1.53.0"
     val protobufVersion = "3.21.12"
     implementation("io.grpc:grpc-kotlin-stub:$grpcKotlinVersion")
     implementation("io.grpc:grpc-protobuf:$grpcVersion")
